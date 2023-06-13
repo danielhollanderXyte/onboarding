@@ -1,15 +1,13 @@
 import User from "./User.types.ts";
 import { Anchor } from "@mantine/core";
-import { useParams } from "react-router-dom";
 
 export function UserItem(props: User) {
-  let showUser = (
+  return (
     <div>
-      <Anchor href={`/users/${props.id}`}>{props.text}</Anchor>
+      <Anchor href={`/users/${props.id}`}>
+        <h4>{props.name}</h4>
+        <div>{props.email}</div>
+      </Anchor>
     </div>
   );
-
-  const { usersId } = useParams();
-  if (usersId == props.id) return showUser;
-  if (usersId == undefined) return showUser;
 }
