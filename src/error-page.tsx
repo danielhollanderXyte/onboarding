@@ -1,12 +1,11 @@
 import { useRouteError } from "react-router-dom";
-import { FC } from "react";
 
 interface RouteError {
   statusText: string;
   message: string;
 }
 
-const ErrorPage: FC = () => {
+export function ErrorPage() {
   const error = useRouteError() as RouteError;
   console.error(error);
 
@@ -19,6 +18,4 @@ const ErrorPage: FC = () => {
       </p>
     </div>
   );
-};
-
-export default ErrorPage;
+}
