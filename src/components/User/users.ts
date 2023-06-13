@@ -2,15 +2,15 @@ import User from "../../Models/User";
 
 const usersList: User[] = [
   {
-    id: Math.floor(Math.random() * Date.now()),
+    id: "1",
     text: `I am user number 1`,
   },
   {
-    id: Math.floor(Math.random() * Date.now()),
+    id: "2",
     text: `I am user number 2`,
   },
   {
-    id: Math.floor(Math.random() * Date.now()),
+    id: "3",
     text: `I am user number 3`,
   },
 ];

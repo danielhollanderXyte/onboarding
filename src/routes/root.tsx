@@ -12,15 +12,21 @@ function Root() {
     <>
       <Tabs defaultValue="gallery">
         <Tabs.List>
-          <Tabs.Tab value="Home" icon={<IconHome size="1rem" />}>
-            <Anchor href="/">Home</Anchor>
-          </Tabs.Tab>
-          <Tabs.Tab value="Users" icon={<IconUser size="1rem" />}>
-            <Anchor href="/users">Users</Anchor>
-          </Tabs.Tab>
-          <Tabs.Tab value="Posts" icon={<IconMessage size="1rem" />}>
-            <Anchor href="/posts">Posts</Anchor>
-          </Tabs.Tab>
+          <Anchor href="/">
+            <Tabs.Tab value="Home" icon={<IconHome size="1rem" />}>
+              Home
+            </Tabs.Tab>
+          </Anchor>
+          <Anchor href="/users">
+            <Tabs.Tab value="Users" icon={<IconUser size="1rem" />}>
+              Users
+            </Tabs.Tab>
+          </Anchor>
+          <Anchor href="/posts">
+            <Tabs.Tab value="Posts" icon={<IconMessage size="1rem" />}>
+              Posts
+            </Tabs.Tab>
+          </Anchor>
         </Tabs.List>
       </Tabs>
       <div id="detail">

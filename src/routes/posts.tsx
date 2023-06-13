@@ -1,7 +1,15 @@
-import Post from "../components/Post/Post";
+import PostItem from "../components/Post/Post";
+import { FC } from "react";
+import Post from "../Models/Post";
 
-function Posts() {
-  return <Post></Post>;
+interface PostList {
+  postsList: Post[];
 }
 
-export default Posts;
+const Users: FC<PostList> = (props: PostList) => {
+  return props.postsList.map((post) => (
+    <PostItem key={post.id} text={post.text} id={post.id}></PostItem>
+  ));
+};
+
+export default Users;
