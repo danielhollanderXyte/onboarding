@@ -1,11 +1,8 @@
-import { FC, useState } from "react";
-// import styles from "./Users.module.css";
-import User from "../../Models/User";
+import User from "./User.types.ts";
 import { Anchor } from "@mantine/core";
 import { useParams } from "react-router-dom";
 
-const UserItem: FC<User> = (props: User) => {
-  const [users] = useState<User>(props); //I would have used this to store the users list
+export function UserItem(props: User) {
   let showUser = (
     <div>
       <Anchor href={`/users/${props.id}`}>{props.text}</Anchor>
@@ -13,8 +10,6 @@ const UserItem: FC<User> = (props: User) => {
   );
 
   const { usersId } = useParams();
-  if (usersId == users.id) return showUser;
+  if (usersId == props.id) return showUser;
   if (usersId == undefined) return showUser;
-};
-
-export default UserItem;
+}

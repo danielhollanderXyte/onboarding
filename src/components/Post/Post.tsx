@@ -1,11 +1,8 @@
-import { FC, useState } from "react";
-// import styles from "./Users.module.css";
-import Post from "../../Models/Post";
+import Post from "./Post.types.ts";
 import { Anchor } from "@mantine/core";
 import { useParams } from "react-router-dom";
 
-const PostItem: FC<Post> = (props: Post) => {
-  const [post] = useState<Post>(props);
+export function PostItem(props: Post) {
   let showUser = (
     <div>
       <Anchor href={`/posts/${props.id}`}>{props.text}</Anchor>
@@ -13,8 +10,6 @@ const PostItem: FC<Post> = (props: Post) => {
   );
 
   const { postsId } = useParams();
-  if (postsId == post.id) return showUser;
+  if (postsId == props.id) return showUser;
   if (postsId == undefined) return showUser;
-};
-
-export default PostItem;
+}

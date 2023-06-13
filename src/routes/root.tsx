@@ -1,11 +1,6 @@
 import { Tabs, Anchor } from "@mantine/core";
 import { IconMessage, IconUser, IconHome } from "@tabler/icons-react";
 import { Outlet } from "react-router-dom";
-import usersList from "../components/User/users";
-
-export function loader() {
-  return usersList;
-}
 
 function Root() {
   return (
