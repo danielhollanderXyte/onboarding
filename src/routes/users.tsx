@@ -1,4 +1,4 @@
-import { UserItem } from "../components/User/User.tsx";
+import { UserItem } from "../components/User/UserItem.tsx";
 import { config } from "../components/User/user.config.ts";
 import User from "../components/User/User.types.ts";
 import { useParams } from "react-router-dom";

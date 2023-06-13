@@ -1,4 +1,4 @@
-import { PostItem } from "../components/Post/Post.tsx";
+import { PostItem } from "../components/Post/PostItem.tsx";
 import { config } from "../components/Post/post.config.ts";
 import { useGet } from "../hooks/useGet.ts";
 import { useParams } from "react-router-dom";
