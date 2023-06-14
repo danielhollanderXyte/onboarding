@@ -2,11 +2,12 @@ import { PostItem } from "../components/Post/PostItem.tsx";
 import { config } from "../components/Post/post.config.ts";
 import { useGet } from "../hooks/useGet.ts";
 import { useParams } from "react-router-dom";
+import TableComponent from "../components/Table/Table.tsx";
 import Post from "../components/Post/Post.types.ts";
 
 export function Posts() {
   const { postsId } = useParams();
-  const { isLoading, isError, data } = useGet(config.url, postsId);
+  const { isLoading, isError, data: postsData } = useGet(config.url, postsId);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -15,9 +16,6 @@ export function Posts() {
   if (isError) {
     return <div>Error: Oh no!</div>;
   }
-  //Changed this to be more meaningful name as "data" is not very descriptive
-  let postsData = data;
-  console.log(postsData);
 
   return postsData?.map((post: Post) => (
     <PostItem
