@@ -7,17 +7,19 @@ import { useParams } from "react-router-dom";
 import { Card, Container, Group, Space, Text } from "@mantine/core";
 
 export function Post(): ReactElement | ReactElement[] | null {
-  const { postId } = useParams();
+  const postParams = useParams();
+  const postId = postParams.postId as string;
   const post = usePost(postId);
-  const comment = useCommentPerPostId(postId);
-  if (post.isLoading || comment.isLoading) {
+  const comments = useCommentPerPostId(postId);
+  console.log(comments);
+  if (post.isLoading || comments.isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (post.isError || comment.isError) {
+  if (post.isError || comments.isError) {
     return <div>Error: Oh no!</div>;
   }
-  if (post.data === undefined || comment.data === undefined) return null;
+  if (post.data === undefined || comments.data === undefined) return null;
 
   return (
     <>
@@ -36,9 +38,11 @@ export function Post(): ReactElement | ReactElement[] | null {
           <Text>
             <strong>User Id:</strong> {post.data.userId}
           </Text>
-          <Text>
-            <strong>Comment:</strong> {comment.data.body}
-          </Text>
+          {comments.data.map((comment) => (
+            <Text>
+              <strong>Comment:</strong> {comment.body}
+            </Text>
+          ))}
         </Card>
       </Container>
     </>

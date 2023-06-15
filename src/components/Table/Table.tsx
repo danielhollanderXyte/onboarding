@@ -1,61 +1,74 @@
-import { Anchor, Table, createStyles } from "@mantine/core";
-import { type ReactElement } from "react";
-import { type User } from "../User/User.types.ts";
-import { type Post } from "../Post/Post.types.ts";
-import { Link } from "react-router-dom";
+import { Table as MantineTable, TextInput } from "@mantine/core";
+import { ReactNode, useState } from "react";
 
-interface Row {
+interface Column {
   columnName: string;
-  anchor: boolean;
+  exactMatch: boolean;
+  header: string;
+  cellRenderer?: (row: any, column: Column) => ReactNode;
 }
-interface TableModel {
-  data: User[] | Post[];
-  headers: string[];
-  columns: Row[];
+interface TableProps<T extends { id: number }> {
+  data: T[];
+  columns: Column[];
 }
 
-const useStyles = createStyles(() => ({
-  postBody: {
-    textOverflow: "ellipsis",
-    overflow: "hidden",
-    maxWidth: "100px",
-    whiteSpace: "nowrap",
-  },
-}));
-export function TableComponent(props: TableModel): ReactElement {
-  const classes = useStyles();
-  const headers = props.headers.map((header, index) => (
-    <th key={index}>{header}</th>
+export function Table<T extends { id: number }>(props: TableProps<T>) {
+  const [data, setData] = useState(props.data);
+  const headers = props.columns.map((column, index) => (
+    <th key={index}>{column.header}</th>
   ));
-  const rows = props.data.map((value) => (
-    <tr key={value.id}>
-      {props.columns.map((column, index) =>
-        column.anchor ? (
-          <td key={index}>
-            <Anchor key={index} component={Link} to={`./${value.id}`}>
-              {value[column.columnName]}
-            </Anchor>
-          </td>
-        ) : (
-          <td
-            key={index}
-            className={
-              column.columnName === "body" ? classes.classes.postBody : ""
-            }
-          >
-            {value[column.columnName]}
-          </td>
-        )
-      )}
+
+  const handleFilterChange = (event) => {
+    const filterValue = event.target.value;
+    const currentColumn = event.target.name.toLowerCase();
+    if (filterValue !== "") {
+      const columns = props.columns;
+      const filteredData = props.data.filter((value) => {
+        for (let i = 0; i < columns.length; i++) {
+          if (currentColumn === columns[i].columnName.toLowerCase()) {
+            if (columns[i].exactMatch)
+              return value[columns[i].columnName].toString() === filterValue;
+            else
+              return value[columns[i].columnName]
+                .toString()
+                .includes(filterValue);
+          }
+        }
+      });
+      setData(filteredData);
+    } else setData(props.data);
+  };
+  const filters = props.columns.map((column, index) => (
+    <td key={index}>
+      <TextInput
+        placeholder={`Filter by ${column.header}`}
+        onChange={handleFilterChange}
+        name={column.columnName}
+      />
+    </td>
+  ));
+
+  const rows = data.map((row) => (
+    <tr key={row.id}>
+      {props.columns.map((column, index) => (
+        <td key={index}>
+          {column.cellRenderer ? (
+            column.cellRenderer(row)
+          ) : (
+            <>{row[column.columnName]} </>
+          )}
+        </td>
+      ))}
     </tr>
   ));
 
   return (
-    <Table>
+    <MantineTable>
       <thead>
+        <tr>{filters}</tr>
         <tr>{headers}</tr>
       </thead>
       <tbody>{rows}</tbody>
-    </Table>
+    </MantineTable>
   );
 }

@@ -4,7 +4,8 @@ import { useParams } from "react-router-dom";
 import { Card, Text, Group, Container, Space } from "@mantine/core";
 
 export function User(): ReactElement | ReactElement[] | null {
-  const { userId } = useParams();
+  const params = useParams();
+  const userId = params.userId as string;
   const user = useUser(userId);
 
   if (user.isLoading) {

@@ -1,8 +1,53 @@
 import { useUsers } from "../components/User/hooks/users.api.ts";
-import { config } from "../components/User/user.config.ts";
-import { TableComponent } from "../components/Table/Table.tsx";
+import { Table } from "../components/Table/Table.tsx";
+import { Anchor, Stack, Text } from "@mantine/core";
+import { Link } from "react-router-dom";
+import { User } from "../components/User/User.types.ts";
+export const config = {
+  table: {
+    columns: [
+      {
+        columnName: "name",
+        cellRenderer: (row: User) => {
+          return (
+            <Anchor component={Link} to={`./${row.id}`}>
+              {row.name}
+            </Anchor>
+          );
+        },
+        header: "Name",
+        exactMatch: false,
+      },
+      {
+        columnName: "username",
+        header: "Username",
+        exactMatch: false,
+      },
+      {
+        columnName: "email",
+        header: "Email",
+        exactMatch: false,
+      },
+      {
+        columnName: "addressCombined",
+        header: "Street",
+        exactMatch: false,
+      },
+      {
+        columnName: "address",
+        header: "Street",
+        exactMatch: false,
+        cellRenderer: (row: User) => (
+          <Stack>
+            <Text>{row.address.city}</Text>
+            <Text>{row.address.street}</Text>
+          </Stack>
+        ),
+      },
+    ],
+  },
+};
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function Users() {
   const users = useUsers();
 
@@ -23,15 +68,10 @@ export function Users() {
   /*
    return <TableComponent rows={users.data} headers={config.table.headers} />;
   */
-  const data = users.data.map((user) => ({
+  const data = users.data.map((user, index) => ({
     ...user,
+    id: user.id ? user.id : index + 1,
     addressCombined: `${user.address.street}, ${user.address.city}`,
   }));
-  return (
-    <TableComponent
-      data={data}
-      headers={config.table.main.headers}
-      columns={config.table.main.rows}
-    ></TableComponent>
-  );
+  return <Table data={data} columns={config.table.columns} />;
 }
