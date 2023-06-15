@@ -1,8 +1,15 @@
-interface Post {
-  userId: number;
+interface Comment {
+  postId: number;
   id: number;
-  title: string;
+  name: string;
+  email: string;
   body: string;
 }
 
-export default Post;
+export interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+  comment: Comment;
+}
