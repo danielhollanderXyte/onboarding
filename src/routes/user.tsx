@@ -17,47 +17,45 @@ export function User(): ReactElement | ReactElement[] | null {
   }
   if (user.data === null || user.data === undefined) return null;
 
-  user.data.addressCombined = `${user.data.address.street}, ${user.data.address.city}`;
+  const data = user.data;
   return (
     <>
       <Space h="xs" />
       <Container size="35rem">
         <Card shadow="md" radius="md" withBorder>
           <Group position="apart" mt="md" mb="xs">
-            <Text weight={700}>{user.data.name}</Text>
+            <Text weight={700}>{data.name}</Text>
           </Group>
           <Text>
-            <strong>Username:</strong> {user.data.username}
+            <strong>Username:</strong> {data.username}
           </Text>
           <Text>
-            <strong>Email:</strong> {user.data.email}
+            <strong>Email:</strong> {data.email}
           </Text>
           <Text>
-            <strong>Address:</strong> {user.data.address.street},{" "}
-            {user.data.address.suite}, {user.data.address.city},{" "}
-            {user.data.address.zipcode}
+            <strong>Address:</strong> {data.address.street},{" "}
+            {data.address.suite}, {data.address.city}, {data.address.zipcode}
           </Text>
           <Text>
-            <strong>Phone:</strong> {user.data.phone}
+            <strong>Phone:</strong> {data.phone}
           </Text>
           <Text>
-            <strong>Website:</strong> {user.data.website}
+            <strong>Website:</strong> {data.website}
           </Text>
           <Text>
-            <strong>Company Name:</strong> {user.data.company.name}
+            <strong>Company Name:</strong> {data.company.name}
           </Text>
           <Text>
-            <strong>Company Catchphrase:</strong>{" "}
-            {user.data.company.catchPhrase}
+            <strong>Company. Catchphrase:</strong> {data.company.catchPhrase}
           </Text>
           <Text>
-            <strong>Company BS:</strong> {user.data.company.bs}
+            <strong>Company. BS:</strong> {data.company.bs}
           </Text>
           <Text>
-            <strong>Latitude:</strong> {user.data.address.geo.lat}
+            <strong>Latitude:</strong> {data.address.geo.lat}
           </Text>
           <Text>
-            <strong>Longitude:</strong> {user.data.address.geo.lng}
+            <strong>Longitude:</strong> {data.address.geo.lng}
           </Text>
         </Card>
       </Container>

@@ -2,7 +2,8 @@ import { useUsers } from "../components/User/hooks/users.api.ts";
 import { Table } from "../components/Table/Table.tsx";
 import { Anchor, Stack, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
-import { User } from "../components/User/User.types.ts";
+import { type User } from "../components/User/User.types.ts";
+
 export const config = {
   table: {
     columns: [
@@ -30,11 +31,6 @@ export const config = {
       },
       {
         columnName: "addressCombined",
-        header: "Street",
-        exactMatch: false,
-      },
-      {
-        columnName: "address",
         header: "Street",
         exactMatch: false,
         cellRenderer: (row: User) => (
@@ -70,8 +66,9 @@ export function Users() {
   */
   const data = users.data.map((user, index) => ({
     ...user,
-    id: user.id ? user.id : index + 1,
-    addressCombined: `${user.address.street}, ${user.address.city}`,
+    id: !Number.isNaN(user.id) ? user.id : index + 1,
+    // I tried to avoid it...with the handleNestedObject util
+    addressCombined: user.address.city + user.address.street,
   }));
   return <Table data={data} columns={config.table.columns} />;
 }

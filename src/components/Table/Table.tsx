@@ -1,31 +1,70 @@
 import { Table as MantineTable, TextInput } from "@mantine/core";
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 interface Column {
   columnName: string;
   exactMatch: boolean;
   header: string;
-  cellRenderer?: (row: any, column: Column) => ReactNode;
+  cellRenderer?: (row: any) => ReactNode;
 }
 interface TableProps<T extends { id: number }> {
   data: T[];
   columns: Column[];
 }
+type SortDirection = "asc" | "desc";
+
+type ColumnSortState = Record<string, SortDirection>;
 
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const [data, setData] = useState(props.data);
+  const [columnSortState, setColumnSortState] = useState<ColumnSortState>({});
+
+  const handleSort = (event, columnName: string) => {
+    setColumnSortState((prevState) => {
+      const currentDirection = prevState[columnName];
+      let newDirection: SortDirection = "asc"; // Default sorting direction
+
+      if (currentDirection === "asc") {
+        newDirection = "desc";
+      } else {
+        newDirection = "asc"; // Reset to default
+      }
+
+      return {
+        ...prevState,
+        [columnName]: newDirection,
+      };
+    });
+    data.sort(
+      (rowA, rowB) =>
+        rowA[columnName]
+          .toString()
+          .localeCompare(rowB[columnName].toString(), "en", {
+            numeric: true,
+          }) * (columnSortState[columnName] === "asc" ? 1 : -1)
+    );
+  };
   const headers = props.columns.map((column, index) => (
-    <th key={index}>{column.header}</th>
+    <th
+      key={index}
+      onClick={(event) => {
+        handleSort(event, column.columnName);
+      }}
+    >
+      {column.header}
+    </th>
   ));
 
-  const handleFilterChange = (event) => {
+  const handleFilterChange = (event, currentColumn: Column) => {
     const filterValue = event.target.value;
-    const currentColumn = event.target.name.toLowerCase();
     if (filterValue !== "") {
       const columns = props.columns;
-      const filteredData = props.data.filter((value) => {
+      const filteredData = props.data.filter((value: Record<string, any>) => {
         for (let i = 0; i < columns.length; i++) {
-          if (currentColumn === columns[i].columnName.toLowerCase()) {
+          if (
+            currentColumn.columnName.toLowerCase() ===
+            columns[i].columnName.toLowerCase()
+          ) {
             if (columns[i].exactMatch)
               return value[columns[i].columnName].toString() === filterValue;
             else
@@ -34,6 +73,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
                 .includes(filterValue);
           }
         }
+        return null;
       });
       setData(filteredData);
     } else setData(props.data);
@@ -42,17 +82,18 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     <td key={index}>
       <TextInput
         placeholder={`Filter by ${column.header}`}
-        onChange={handleFilterChange}
-        name={column.columnName}
+        onChange={(event) => {
+          handleFilterChange(event, column);
+        }}
       />
     </td>
   ));
 
-  const rows = data.map((row) => (
+  const rows = data.map((row: Record<string, any>) => (
     <tr key={row.id}>
       {props.columns.map((column, index) => (
         <td key={index}>
-          {column.cellRenderer ? (
+          {column.cellRenderer != null ? (
             column.cellRenderer(row)
           ) : (
             <>{row[column.columnName]} </>

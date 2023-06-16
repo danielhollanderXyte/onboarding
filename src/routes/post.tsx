@@ -38,7 +38,7 @@ export function Post(): ReactElement | ReactElement[] | null {
             <strong>User Id:</strong> {post.data.userId}
           </Text>
           {comments.data.map((comment) => (
-            <Text>
+            <Text key={comment.id}>
               <strong>Comment:</strong> {comment.body}
             </Text>
           ))}
