@@ -11,7 +11,6 @@ export function Post(): ReactElement | ReactElement[] | null {
   const postId = postParams.postId as string;
   const post = usePost(postId);
   const comments = useCommentPerPostId(postId);
-  console.log(comments);
   if (post.isLoading || comments.isLoading) {
     return <div>Loading...</div>;
   }
