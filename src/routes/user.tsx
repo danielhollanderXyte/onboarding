@@ -1,7 +1,17 @@
 import { useUser } from "../components/User/hooks/users.api.ts";
 import { type ReactElement } from "react";
 import { useParams } from "react-router-dom";
-import { Card, Text, Group, Container, Space } from "@mantine/core";
+import {
+  Card,
+  Text,
+  Group,
+  Container,
+  Space,
+  Loader,
+  Alert,
+  Center,
+} from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 export function User(): ReactElement | ReactElement[] | null {
   const params = useParams();
@@ -9,11 +19,25 @@ export function User(): ReactElement | ReactElement[] | null {
   const user = useUser(userId);
 
   if (user.isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Center maw={400} h={100} mx="auto">
+        <Loader />
+      </Center>
+    );
   }
 
   if (user.isError) {
-    return <div>Error: Oh no!</div>;
+    return (
+      <Container size="30rem" px={10}>
+        <Alert
+          icon={<IconAlertCircle size="1rem" />}
+          title="Bummer!"
+          color="red"
+        >
+          Error: Oh no!
+        </Alert>
+      </Container>
+    );
   }
   if (user.data === null || user.data === undefined) return null;
 

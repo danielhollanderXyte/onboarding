@@ -1,8 +1,17 @@
 import { useUsers } from "../components/User/hooks/users.api.ts";
 import { Table } from "../components/Table/Table.tsx";
-import { Anchor, Stack, Text } from "@mantine/core";
+import {
+  Anchor,
+  Stack,
+  Text,
+  Loader,
+  Alert,
+  Center,
+  Container,
+} from "@mantine/core";
 import { Link } from "react-router-dom";
 import { type User } from "../components/User/User.types.ts";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 export const config = {
   table: {
@@ -48,15 +57,29 @@ export function Users() {
   const users = useUsers();
 
   if (users.isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Center maw={400} h={100} mx="auto">
+        <Loader />
+      </Center>
+    );
   }
 
   if (users.isError) {
-    return <div>Error: Oh no!</div>;
+    return (
+      <Container size="30rem" px={10}>
+        <Alert
+          icon={<IconAlertCircle size="1rem" />}
+          title="Bummer!"
+          color="red"
+        >
+          Error: Oh no!
+        </Alert>
+      </Container>
+    );
   }
 
   if (!users.isFetched) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (users.data === undefined) return null;
