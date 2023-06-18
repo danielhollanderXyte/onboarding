@@ -1,31 +1,77 @@
-import { UserItem } from "../components/User/UserItem.tsx";
-import { config } from "../components/User/user.config.ts";
-import User from "../components/User/User.types.ts";
-import { useParams } from "react-router-dom";
-import { useGet } from "../hooks/useGet.ts";
+import { useUsers } from "../components/User/hooks/users.api.ts";
+import { Table } from "../components/Table/Table.tsx";
+import { Anchor, Stack, Text } from "@mantine/core";
+import { Link } from "react-router-dom";
+import { User } from "../components/User/User.types.ts";
+export const config = {
+  table: {
+    columns: [
+      {
+        columnName: "name",
+        cellRenderer: (row: User) => {
+          return (
+            <Anchor component={Link} to={`./${row.id}`}>
+              {row.name}
+            </Anchor>
+          );
+        },
+        header: "Name",
+        exactMatch: false,
+      },
+      {
+        columnName: "username",
+        header: "Username",
+        exactMatch: false,
+      },
+      {
+        columnName: "email",
+        header: "Email",
+        exactMatch: false,
+      },
+      {
+        columnName: "addressCombined",
+        header: "Street",
+        exactMatch: false,
+      },
+      {
+        columnName: "address",
+        header: "Street",
+        exactMatch: false,
+        cellRenderer: (row: User) => (
+          <Stack>
+            <Text>{row.address.city}</Text>
+            <Text>{row.address.street}</Text>
+          </Stack>
+        ),
+      },
+    ],
+  },
+};
 
 export function Users() {
-  const { userId } = useParams();
-  const { isLoading, isError, data } = useGet(config.url, userId);
+  const users = useUsers();
 
-  if (isLoading) {
+  if (users.isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (isError) {
+  if (users.isError) {
     return <div>Error: Oh no!</div>;
   }
-  //Changed this to be more meaningful name as "data" is not very descriptive
-  let usersData = data;
-  console.log(usersData);
 
-  return usersData?.map((user: User) => (
-    <UserItem
-      name={user.name}
-      id={user.id}
-      username={user.username}
-      email={user.email}
-      key={user.id}
-    />
-  ));
+  if (!users.isFetched) {
+    return <div>Loading...</div>;
+  }
+
+  if (users.data === undefined) return null;
+
+  /*
+   return <TableComponent rows={users.data} headers={config.table.headers} />;
+  */
+  const data = users.data.map((user, index) => ({
+    ...user,
+    id: user.id ? user.id : index + 1,
+    addressCombined: `${user.address.street}, ${user.address.city}`,
+  }));
+  return <Table data={data} columns={config.table.columns} />;
 }

@@ -5,15 +5,22 @@ module.exports = {
   },
   extends: [
     'standard-with-typescript',
-    'plugin:react/recommended'
+    'plugin:@typescript-eslint/recommended',
+    "plugin:prettier/recommended"
   ],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
+    project: './tsconfig.json'
   },
   plugins: [
-    'react'
+    'react',
+    'prettier'
   ],
   rules: {
+    "prettier/prettier": "error",
+    "@typescript-eslint/explicit-function-return-type": {
+      "allowExpressions": true
+    }
   }
 }

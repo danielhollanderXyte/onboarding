@@ -11,7 +11,9 @@ import {
 } from "react-router-dom";
 import { ErrorPage } from "./error-page.tsx";
 import { Users } from "./routes/users.tsx";
+import { User } from "./routes/user.tsx";
 import { Posts } from "./routes/posts.tsx";
+import { Post } from "./routes/post.tsx";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 const queryClient = new QueryClient();
@@ -21,8 +23,8 @@ const routerDefinitions = createRoutesFromElements(
     <Route path="/" element={<App />} />
     <Route path="users" element={<Users />} />
     <Route path="posts" element={<Posts />} />
-    <Route path="users/:usersId" element={<Users />} />
-    <Route path="posts/:postsId" element={<Posts />} />
+    <Route path="users/:userId" element={<User />} />
+    <Route path="posts/:postId" element={<Post />} />
   </Route>
 );
 
