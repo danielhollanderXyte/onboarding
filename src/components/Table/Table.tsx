@@ -2,8 +2,7 @@ import { Table as MantineTable, TextInput } from "@mantine/core";
 import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 import { omit } from "lodash/fp";
-import { isEmpty } from "lodash";
-import { getNextSortValue } from "../../utils/utils.ts";
+import { filterData, getNextSortValue, sortData } from "../../utils/utils.ts";
 
 interface Column {
   columnName: string;
@@ -68,61 +67,17 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     </td>
   ));
 
-  const filterData = (data, column, columnsArr) => {
-    if (isEmpty(column)) return data;
-    return data.filter((row) => {
-      return Object.entries(filtersState).every(
-        ([columnName, filterInputValue]) => {
-          const exactMatchValue = columnsArr.find(
-            (e) => e.columnName === columnName
-          )?.exactMatch;
-
-          if (exactMatchValue)
-            return (
-              row[columnName].toString().toLowerCase() ===
-              filterInputValue.toString().toLowerCase()
-            );
-          else
-            return row[columnName]
-              .toString()
-              .toLowerCase()
-              .includes(filterInputValue.toString().toLowerCase());
-        }
-      );
-    });
-  };
-
-  const sortData = (data, column) => {
-    if (isEmpty(column)) return data;
-    else {
-      return data.sort((rowA, rowB) => {
-        const columnName = Object.keys(column)[0];
-        const direction = sortState[columnName];
-        if (direction === null) return 0;
-        return (
-          rowA[columnName]
-            .toString()
-            .localeCompare(rowB[columnName].toString(), "en", {
-              numeric: true,
-            }) * (direction === "asc" ? 1 : -1)
-        );
-      });
-    }
-  };
-
   const adjustedData = useMemo(() => {
     const filteredData = filterData(
       [...props.data],
       filtersState,
-      props.columns
+      props.columns,
+      filtersState
     );
     const sortedData = sortData(filteredData, sortState);
 
     return sortedData;
   }, [filtersState, sortState, props.data]);
-
-  console.log(`filterState`, filtersState);
-  console.log(`sortState`, sortState);
 
   return (
     <MantineTable>
