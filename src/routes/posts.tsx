@@ -20,13 +20,11 @@ const config = {
             </Anchor>
           );
         },
-        sortDirection: "asc",
       },
       {
         columnName: "title",
         exactMatch: false,
         header: "Title",
-        sortDirection: null,
       },
       {
         columnName: "body",
@@ -40,7 +38,6 @@ const config = {
             </Text>
           );
         },
-        sortDirection: null,
       },
     ],
   },

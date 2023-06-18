@@ -1,5 +1,5 @@
 import { Table as MantineTable, TextInput } from "@mantine/core";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 
 interface Column {
@@ -7,7 +7,6 @@ interface Column {
   exactMatch: boolean;
   header: string;
   cellRenderer?: (row: any) => ReactNode;
-  sortDirection: "asc" | "desc" | null;
 }
 interface TableProps<T extends { id: number }> {
   data: T[];
@@ -32,7 +31,6 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         [columnName]: sortState[columnName] === "asc" ? "desc" : "asc",
       };
     });
-    console.log(sortState);
   };
 
   const handleFilterChange = (event, currentColumn: Column) => {
@@ -75,7 +73,6 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       }
       return passesAllFilters; // Return the result
     });
-    console.log(sortState);
 
     const sortedData = filteredData.sort((rowA, rowB) => {
       for (const column in sortState) {
@@ -91,43 +88,44 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     return sortedData;
   }, [filtersState, sortState, props.data]);
 
-  const headers = props.columns.map((column, index) => (
-    <th
-      key={index}
-      onClick={(event) => {
-        handleSort(event, column.columnName);
-      }}
-    >
-      {column.header}{" "}
-      {sortState[column.columnName] === "desc" || sortState === undefined ? (
-        <IconSortDescending />
-      ) : (
-        <IconSortAscending />
-      )}
-    </th>
-  ));
-
-  const rows = filteredData.map((row: Record<string, any>) => (
-    <tr key={row.id}>
-      {props.columns.map((column, index) => (
-        <td key={index}>
-          {column.cellRenderer != null ? (
-            column.cellRenderer(row)
-          ) : (
-            <>{row[column.columnName]} </>
-          )}
-        </td>
-      ))}
-    </tr>
-  ));
-
   return (
     <MantineTable>
       <thead>
         <tr>{filters}</tr>
-        <tr>{headers}</tr>
+        <tr>
+          {props.columns.map((column, index) => (
+            <th
+              key={index}
+              onClick={(event) => {
+                handleSort(event, column.columnName);
+              }}
+            >
+              {column.header}{" "}
+              {sortState[column.columnName] === "desc" ||
+              sortState === undefined ? (
+                <IconSortDescending />
+              ) : (
+                <IconSortAscending />
+              )}
+            </th>
+          ))}
+        </tr>
       </thead>
-      <tbody>{rows}</tbody>
+      <tbody>
+        {filteredData.map((row: Record<string, any>) => (
+          <tr key={row.id}>
+            {props.columns.map((column, index) => (
+              <td key={index}>
+                {column.cellRenderer != null ? (
+                  column.cellRenderer(row)
+                ) : (
+                  <>{row[column.columnName]} </>
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
     </MantineTable>
   );
 }
