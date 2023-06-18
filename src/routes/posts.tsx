@@ -48,7 +48,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
   if (posts.isLoading) {
     return (
       <Center maw={400} h={100} mx="auto">
-        return <Loader />;
+        <Loader />
       </Center>
     );
   }
@@ -66,6 +66,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
       </Container>
     );
   }
+
   if (posts.data === undefined) return null;
   const data = posts.data.map((post, index) => ({
     ...post,

@@ -14,3 +14,16 @@ export function flattenNestedObject(obj: {}) {
 
   return result;
 }
+
+export function getNextSortValue(value?: "asc" | "desc" | null) {
+  switch (value) {
+    case "asc":
+      return null;
+    case "desc":
+      return "asc";
+    case null:
+      return "desc";
+    default:
+      return "asc";
+  }
+}
