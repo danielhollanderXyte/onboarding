@@ -27,16 +27,19 @@ export const config = {
         },
         header: "Name",
         exactMatch: false,
+        sortDirection: "asc",
       },
       {
         columnName: "username",
         header: "Username",
         exactMatch: false,
+        sortDirection: null,
       },
       {
         columnName: "email",
         header: "Email",
         exactMatch: false,
+        sortDirection: null,
       },
       {
         columnName: "addressCombined",
@@ -48,6 +51,7 @@ export const config = {
             <Text>{row.address.street}</Text>
           </Stack>
         ),
+        sortDirection: null,
       },
     ],
   },

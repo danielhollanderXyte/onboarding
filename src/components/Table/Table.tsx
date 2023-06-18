@@ -1,83 +1,47 @@
 import { Table as MantineTable, TextInput } from "@mantine/core";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 
 interface Column {
   columnName: string;
   exactMatch: boolean;
   header: string;
   cellRenderer?: (row: any) => ReactNode;
+  sortDirection: "asc" | "desc" | null;
 }
 interface TableProps<T extends { id: number }> {
   data: T[];
   columns: Column[];
 }
-type SortDirection = "asc" | "desc";
 
-type ColumnSortState = Record<string, SortDirection>;
+interface Filter {
+  name: "asc" | "desc" | null;
+}
+interface Sort {
+  name: "asc" | "desc" | null;
+}
 
 export function Table<T extends { id: number }>(props: TableProps<T>) {
-  const [data, setData] = useState(props.data);
-  const [columnSortState, setColumnSortState] = useState<ColumnSortState>({});
+  const [filtersState, setFilters] = useState<Record<string, Filter>>({});
+  const [sortState, setSorting] = useState<Record<string, Sort>>({});
 
   const handleSort = (event, columnName: string) => {
-    setColumnSortState((prevState) => {
-      const currentDirection = prevState[columnName];
-      let newDirection: SortDirection = "asc"; // Default sorting direction
-
-      if (currentDirection === "asc") {
-        newDirection = "desc";
-      } else {
-        newDirection = "asc"; // Reset to default
-      }
-
+    setSorting((prevSorting) => {
+      if (sortState[columnName] === undefined) sortState[columnName] = "asc";
       return {
-        ...prevState,
-        [columnName]: newDirection,
+        [columnName]: sortState[columnName] === "asc" ? "desc" : "asc",
       };
     });
-    data.sort(
-      (rowA, rowB) =>
-        rowA[columnName]
-          .toString()
-          .localeCompare(rowB[columnName].toString(), "en", {
-            numeric: true,
-          }) * (columnSortState[columnName] === "asc" ? 1 : -1)
-    );
+    console.log(sortState);
   };
-  const headers = props.columns.map((column, index) => (
-    <th
-      key={index}
-      onClick={(event) => {
-        handleSort(event, column.columnName);
-      }}
-    >
-      {column.header}
-    </th>
-  ));
 
   const handleFilterChange = (event, currentColumn: Column) => {
-    const filterValue = event.target.value;
-    if (filterValue !== "") {
-      const columns = props.columns;
-      const filteredData = props.data.filter((value: Record<string, any>) => {
-        for (let i = 0; i < columns.length; i++) {
-          if (
-            currentColumn.columnName.toLowerCase() ===
-            columns[i].columnName.toLowerCase()
-          ) {
-            if (columns[i].exactMatch)
-              return value[columns[i].columnName].toString() === filterValue;
-            else
-              return value[columns[i].columnName]
-                .toString()
-                .includes(filterValue);
-          }
-        }
-        return null;
-      });
-      setData(filteredData);
-    } else setData(props.data);
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [currentColumn.columnName]: event.target.value,
+    }));
   };
+
   const filters = props.columns.map((column, index) => (
     <td key={index}>
       <TextInput
@@ -89,7 +53,61 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     </td>
   ));
 
-  const rows = data.map((row: Record<string, any>) => (
+  const filteredData = useMemo(() => {
+    const filteredData = props.data.filter((obj) => {
+      let passesAllFilters = true;
+      for (const key in filtersState) {
+        if (filtersState[key] === "") continue;
+        const exactMatchValue = props.columns.find(
+          (e) => e.columnName === key
+        )?.exactMatch;
+        if (exactMatchValue) {
+          if (obj[key].toString() !== filtersState[key]) {
+            passesAllFilters = false;
+            break;
+          }
+        } else {
+          if (!obj[key].toString().includes(filtersState[key])) {
+            passesAllFilters = false;
+            break;
+          }
+        }
+      }
+      return passesAllFilters; // Return the result
+    });
+    console.log(sortState);
+
+    const sortedData = filteredData.sort((rowA, rowB) => {
+      for (const column in sortState) {
+        const direction = sortState[column];
+        return (
+          rowA[column].toString().localeCompare(rowB[column].toString(), "en", {
+            numeric: true,
+          }) * (direction === "asc" ? 1 : -1)
+        );
+      }
+    });
+
+    return sortedData;
+  }, [filtersState, sortState, props.data]);
+
+  const headers = props.columns.map((column, index) => (
+    <th
+      key={index}
+      onClick={(event) => {
+        handleSort(event, column.columnName);
+      }}
+    >
+      {column.header}{" "}
+      {sortState[column.columnName] === "desc" || sortState === undefined ? (
+        <IconSortDescending />
+      ) : (
+        <IconSortAscending />
+      )}
+    </th>
+  ));
+
+  const rows = filteredData.map((row: Record<string, any>) => (
     <tr key={row.id}>
       {props.columns.map((column, index) => (
         <td key={index}>

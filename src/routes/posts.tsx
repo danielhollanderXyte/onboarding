@@ -20,11 +20,13 @@ const config = {
             </Anchor>
           );
         },
+        sortDirection: "asc",
       },
       {
         columnName: "title",
         exactMatch: false,
         header: "Title",
+        sortDirection: null,
       },
       {
         columnName: "body",
@@ -38,6 +40,7 @@ const config = {
             </Text>
           );
         },
+        sortDirection: null,
       },
     ],
   },
@@ -69,7 +72,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
   if (posts.data === undefined) return null;
   const data = posts.data.map((post, index) => ({
     ...post,
-    id: post.id ? post.id : index + 1,
+    id: !Number.isNaN(post.id) ? post.id : index + 1,
   }));
   return <Table data={data} columns={config.table.columns} />;
 }
