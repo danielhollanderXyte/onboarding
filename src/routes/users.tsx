@@ -1,8 +1,18 @@
 import { useUsers } from "../components/User/hooks/users.api.ts";
 import { Table } from "../components/Table/Table.tsx";
-import { Anchor, Stack, Text } from "@mantine/core";
+import {
+  Anchor,
+  Stack,
+  Text,
+  Loader,
+  Alert,
+  Center,
+  Container,
+} from "@mantine/core";
 import { Link } from "react-router-dom";
-import { User } from "../components/User/User.types.ts";
+import { type User } from "../components/User/User.types.ts";
+import { IconAlertCircle } from "@tabler/icons-react";
+
 export const config = {
   table: {
     columns: [
@@ -32,11 +42,6 @@ export const config = {
         columnName: "addressCombined",
         header: "Street",
         exactMatch: false,
-      },
-      {
-        columnName: "address",
-        header: "Street",
-        exactMatch: false,
         cellRenderer: (row: User) => (
           <Stack>
             <Text>{row.address.city}</Text>
@@ -52,15 +57,29 @@ export function Users() {
   const users = useUsers();
 
   if (users.isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Center maw={400} h={100} mx="auto">
+        <Loader />
+      </Center>
+    );
   }
 
   if (users.isError) {
-    return <div>Error: Oh no!</div>;
+    return (
+      <Container size="30rem" px={10}>
+        <Alert
+          icon={<IconAlertCircle size="1rem" />}
+          title="Bummer!"
+          color="red"
+        >
+          Error: Oh no!
+        </Alert>
+      </Container>
+    );
   }
 
   if (!users.isFetched) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (users.data === undefined) return null;
@@ -70,8 +89,9 @@ export function Users() {
   */
   const data = users.data.map((user, index) => ({
     ...user,
-    id: user.id ? user.id : index + 1,
-    addressCombined: `${user.address.street}, ${user.address.city}`,
+    id: !Number.isNaN(user.id) ? user.id : index + 1,
+    // I tried to avoid it...with the handleNestedObject util
+    addressCombined: user.address.city + user.address.street,
   }));
   return <Table data={data} columns={config.table.columns} />;
 }

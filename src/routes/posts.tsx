@@ -1,9 +1,10 @@
 import { usePosts } from "../components/Post/hooks/posts.api.ts";
 import { type ReactElement } from "react";
 import { Table } from "../components/Table/Table.tsx";
-import { Anchor, Text } from "@mantine/core";
+import { Alert, Anchor, Center, Container, Loader, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
-import { Post } from "../components/Post/Post.types.ts";
+import { type Post } from "../components/Post/Post.types.ts";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 const config = {
   table: {
@@ -45,16 +46,31 @@ const config = {
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
   if (posts.isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Center maw={400} h={100} mx="auto">
+        <Loader />
+      </Center>
+    );
   }
 
   if (posts.isError) {
-    return <div>Error: Oh no!</div>;
+    return (
+      <Container size="30rem" px={10}>
+        <Alert
+          icon={<IconAlertCircle size="1rem" />}
+          title="Bummer!"
+          color="red"
+        >
+          Error: Oh no!
+        </Alert>
+      </Container>
+    );
   }
+
   if (posts.data === undefined) return null;
   const data = posts.data.map((post, index) => ({
     ...post,
-    id: post.id ? post.id : index + 1,
+    id: !Number.isNaN(post.id) ? post.id : index + 1,
   }));
   return <Table data={data} columns={config.table.columns} />;
 }

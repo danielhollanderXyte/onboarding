@@ -1,74 +1,167 @@
 import { Table as MantineTable, TextInput } from "@mantine/core";
-import { ReactNode, useState } from "react";
+import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
+import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
+import { omit } from "lodash/fp";
+import { isEmpty } from "lodash";
+import { getNextSortValue } from "../../utils/utils.ts";
 
 interface Column {
   columnName: string;
   exactMatch: boolean;
   header: string;
-  cellRenderer?: (row: any, column: Column) => ReactNode;
+  cellRenderer?: (row: any) => ReactNode;
 }
+
 interface TableProps<T extends { id: number }> {
   data: T[];
   columns: Column[];
 }
 
-export function Table<T extends { id: number }>(props: TableProps<T>) {
-  const [data, setData] = useState(props.data);
-  const headers = props.columns.map((column, index) => (
-    <th key={index}>{column.header}</th>
-  ));
+type Sort = Record<string, "asc" | "desc" | null>;
+type Filter = Record<string, string>;
 
-  const handleFilterChange = (event) => {
-    const filterValue = event.target.value;
-    const currentColumn = event.target.name.toLowerCase();
-    if (filterValue !== "") {
-      const columns = props.columns;
-      const filteredData = props.data.filter((value) => {
-        for (let i = 0; i < columns.length; i++) {
-          if (currentColumn === columns[i].columnName.toLowerCase()) {
-            if (columns[i].exactMatch)
-              return value[columns[i].columnName].toString() === filterValue;
-            else
-              return value[columns[i].columnName]
-                .toString()
-                .includes(filterValue);
-          }
-        }
-      });
-      setData(filteredData);
-    } else setData(props.data);
+export function Table<T extends { id: number }>(props: TableProps<T>) {
+  const [filtersState, setFilters] = useState<Filter>({});
+  const [sortState, setSorting] = useState<Sort>({});
+
+  const handleSort = (event, columnName: string) => {
+    setSorting((prevSorting) => {
+      const updatedSortState = { ...prevSorting };
+
+      if (updatedSortState[columnName] === undefined) {
+        updatedSortState[columnName] = "desc";
+        return {
+          [columnName]: updatedSortState[columnName],
+        };
+      }
+
+      const order = getNextSortValue(sortState[columnName]);
+      return {
+        [columnName]: order,
+      };
+    });
   };
+
+  const handleFilterChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    currentColumn: string
+  ) => {
+    if (!event.target.value && Boolean(filtersState[currentColumn])) {
+      setFilters((prevState) => omit([currentColumn], prevState));
+      return;
+    }
+
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [currentColumn]: event.target.value,
+    }));
+  };
+
   const filters = props.columns.map((column, index) => (
     <td key={index}>
       <TextInput
         placeholder={`Filter by ${column.header}`}
-        onChange={handleFilterChange}
-        name={column.columnName}
+        onChange={(event) => {
+          handleFilterChange(event, column.columnName);
+        }}
       />
     </td>
   ));
 
-  const rows = data.map((row) => (
-    <tr key={row.id}>
-      {props.columns.map((column, index) => (
-        <td key={index}>
-          {column.cellRenderer ? (
-            column.cellRenderer(row)
-          ) : (
-            <>{row[column.columnName]} </>
-          )}
-        </td>
-      ))}
-    </tr>
-  ));
+  const filterData = (data, column, columnsArr) => {
+    if (isEmpty(column)) return data;
+    return data.filter((row) => {
+      return Object.entries(filtersState).every(
+        ([columnName, filterInputValue]) => {
+          const exactMatchValue = columnsArr.find(
+            (e) => e.columnName === columnName
+          )?.exactMatch;
+
+          if (exactMatchValue)
+            return (
+              row[columnName].toString().toLowerCase() ===
+              filterInputValue.toString().toLowerCase()
+            );
+          else
+            return row[columnName]
+              .toString()
+              .toLowerCase()
+              .includes(filterInputValue.toString().toLowerCase());
+        }
+      );
+    });
+  };
+
+  const sortData = (data, column) => {
+    if (isEmpty(column)) return data;
+    else {
+      return data.sort((rowA, rowB) => {
+        const columnName = Object.keys(column)[0];
+        const direction = sortState[columnName];
+        if (direction === null) return 0;
+        return (
+          rowA[columnName]
+            .toString()
+            .localeCompare(rowB[columnName].toString(), "en", {
+              numeric: true,
+            }) * (direction === "asc" ? 1 : -1)
+        );
+      });
+    }
+  };
+
+  const adjustedData = useMemo(() => {
+    const filteredData = filterData(
+      [...props.data],
+      filtersState,
+      props.columns
+    );
+    const sortedData = sortData(filteredData, sortState);
+
+    return sortedData;
+  }, [filtersState, sortState, props.data]);
+
+  console.log(`filterState`, filtersState);
+  console.log(`sortState`, sortState);
 
   return (
     <MantineTable>
       <thead>
         <tr>{filters}</tr>
-        <tr>{headers}</tr>
+        <tr>
+          {props.columns.map((column, index) => (
+            <th
+              key={index}
+              onClick={(event) => {
+                handleSort(event, column.columnName);
+              }}
+            >
+              {column.header}{" "}
+              {sortState[column.columnName] === "desc" ||
+              sortState === undefined ? (
+                <IconSortDescending />
+              ) : (
+                <IconSortAscending />
+              )}
+            </th>
+          ))}
+        </tr>
       </thead>
-      <tbody>{rows}</tbody>
+      <tbody>
+        {adjustedData.map((row: Record<string, any>) => (
+          <tr key={row.id}>
+            {props.columns.map((column, index) => (
+              <td key={index}>
+                {column.cellRenderer != null ? (
+                  column.cellRenderer(row)
+                ) : (
+                  <>{row[column.columnName]} </>
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
     </MantineTable>
   );
 }
