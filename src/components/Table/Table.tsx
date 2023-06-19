@@ -4,16 +4,16 @@ import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 import { omit } from "lodash/fp";
 import { filterData, getNextSortValue, sortData } from "../../utils/utils.ts";
 
-export interface Column {
+export interface Column<TData> {
   columnName: string;
   exactMatch: boolean;
   header: string;
-  cellRenderer?: (row: any) => ReactNode;
+  cellRenderer?: (row: TData) => ReactNode;
 }
 
-interface TableProps<T extends { id: number }> {
-  data: T[];
-  columns: Column[];
+interface TableProps<TData> {
+  data: TData[];
+  columns: Array<Column<TData>>;
 }
 
 export type Sort = Record<string, "asc" | "desc" | null>;
@@ -103,14 +103,14 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         </tr>
       </thead>
       <tbody>
-        {adjustedData.map((row: any) => (
+        {adjustedData.map((row) => (
           <tr key={row.id}>
             {props.columns.map((column, index) => (
               <td key={index}>
                 {column.cellRenderer != null ? (
                   column.cellRenderer(row)
                 ) : (
-                  <>{row[column.columnName]} </>
+                  <>{row[column.columnName as keyof T] as string} </>
                 )}
               </td>
             ))}

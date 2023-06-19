@@ -89,7 +89,7 @@ export function Users() {
   */
   const data = users.data.map((user, index) => ({
     ...user,
-    id: !Number.isNaN(user.id) ? user.id : index + 1,
+    id: !isNaN(user.id) ? user.id : index + 1,
     // I tried to avoid it...with the handleNestedObject util
     addressCombined: user.address.city + user.address.street,
   }));
