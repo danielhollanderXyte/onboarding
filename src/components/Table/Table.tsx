@@ -80,8 +80,9 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
-    if (sortingStatus === "asc") return <IconSortAscending />;
-    if (sortingStatus === null) return <div></div>;
+    else if (sortingStatus === "asc") return <IconSortAscending />;
+
+    return null;
   };
 
   return (

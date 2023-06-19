@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import { isEmpty, toLower } from "lodash";
 import {
   type Column,
   type Filter,
@@ -19,36 +19,28 @@ export function getNextSortValue(value?: "asc" | "desc" | null) {
 
 export function filterData<T>(
   data: T[],
-  column: Filter,
+  filter: Filter,
   columnsArr: Column[]
 ): T[] {
-  if (isEmpty(column)) return data;
+  if (isEmpty(filter)) return data;
   return data.filter((row) => {
-    return Object.entries(column).every(([columnName, filterInputValue]) => {
-      const exactMatchValue = columnsArr.find(
+    return Object.entries(filter).every(([columnName, filterInputValue]) => {
+      const isExactMatch = columnsArr.find(
         (e) => e.columnName === columnName
       )?.exactMatch;
 
       const rowValue = row[columnName as keyof T] as string;
-      if (exactMatchValue)
-        return (
-          rowValue.toString().toLowerCase() ===
-          filterInputValue?.toString().toLowerCase()
-        );
-      else
-        return rowValue
-          .toString()
-          .toLowerCase()
-          .includes(filterInputValue?.toString().toLowerCase());
+      if (isExactMatch) return toLower(rowValue) === toLower(filterInputValue);
+      else return toLower(rowValue).includes(toLower(filterInputValue));
     });
   });
 }
 
-export function sortData<T>(data: T[], column: Sort): T[] {
-  if (isEmpty(column)) return data;
+export function sortData<T>(data: T[], sort: Sort): T[] {
+  if (isEmpty(sort)) return data;
   else {
     return data.sort((rowA, rowB) => {
-      const columnName = Object.keys(column)[0];
+      const columnName = Object.keys(sort)[0];
       const direction = column[columnName];
       if (direction === null) return 0;
       const rowAValue = rowA[columnName as keyof T] as string;
