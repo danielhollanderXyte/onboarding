@@ -4,7 +4,7 @@ import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 import { omit } from "lodash/fp";
 import { filterData, getNextSortValue, sortData } from "../../utils/utils.ts";
 
-interface Column {
+export interface Column {
   columnName: string;
   exactMatch: boolean;
   header: string;
@@ -16,14 +16,14 @@ interface TableProps<T extends { id: number }> {
   columns: Column[];
 }
 
-type Sort = Record<string, "asc" | "desc" | null>;
-type Filter = Record<string, string>;
+export type Sort = Record<string, "asc" | "desc" | null>;
+export type Filter = Record<string, string>;
 
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
 
-  const handleSort = (event, columnName: string) => {
+  const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
       const updatedSortState = { ...prevSorting };
 
@@ -71,13 +71,18 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     const filteredData = filterData(
       [...props.data],
       filtersState,
-      props.columns,
-      filtersState
+      props.columns
     );
     const sortedData = sortData(filteredData, sortState);
 
     return sortedData;
   }, [filtersState, sortState, props.data]);
+
+  const displaySortingIcon = (sortingStatus: string | null) => {
+    if (sortingStatus === "desc") return <IconSortDescending />;
+    if (sortingStatus === "asc") return <IconSortAscending />;
+    if (sortingStatus === null) return <div></div>;
+  };
 
   return (
     <MantineTable>
@@ -87,23 +92,17 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           {props.columns.map((column, index) => (
             <th
               key={index}
-              onClick={(event) => {
-                handleSort(event, column.columnName);
+              onClick={() => {
+                handleSort(column.columnName);
               }}
             >
-              {column.header}{" "}
-              {sortState[column.columnName] === "desc" ||
-              sortState === undefined ? (
-                <IconSortDescending />
-              ) : (
-                <IconSortAscending />
-              )}
+              {column.header} {displaySortingIcon(sortState[column.columnName])}
             </th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {adjustedData.map((row: Record<string, any>) => (
+        {adjustedData.map((row: any) => (
           <tr key={row.id}>
             {props.columns.map((column, index) => (
               <td key={index}>
