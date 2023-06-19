@@ -41,7 +41,7 @@ export function sortData<T>(data: T[], sort: Sort): T[] {
   else {
     return data.sort((rowA, rowB) => {
       const columnName = Object.keys(sort)[0];
-      const direction = column[columnName];
+      const direction = sort[columnName];
       if (direction === null) return 0;
       const rowAValue = rowA[columnName as keyof T] as string;
       const rowBValue = rowB[columnName as keyof T] as string;
