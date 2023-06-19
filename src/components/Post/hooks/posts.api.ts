@@ -1,5 +1,5 @@
 import { getData } from "../../../api/api.utils.ts";
-import { type Post } from "../Post.types.ts";
+import { type PostComment, type Post } from "../Post.types.ts";
 import { useQuery } from "react-query";
 
 export function usePost(id: string) {
@@ -11,10 +11,10 @@ export function usePost(id: string) {
 }
 
 export function useCommentPerPostId(postId: string) {
-  return useQuery<Post>({
+  return useQuery<PostComment[]>({
     queryKey: ["comments", postId],
     queryFn: async () =>
-      await getData<Post>(
+      await getData<PostComment[]>(
         `https://jsonplaceholder.typicode.com/comments?postId=${postId}`
       ),
   });

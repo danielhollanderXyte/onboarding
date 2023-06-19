@@ -15,6 +15,7 @@ import {
   Text,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
+import { type PostComment } from "../components/Post/Post.types.ts";
 
 export function Post(): ReactElement | ReactElement[] | null {
   const postParams = useParams();
@@ -42,7 +43,12 @@ export function Post(): ReactElement | ReactElement[] | null {
       </Container>
     );
   }
-  if (post.data === undefined || comments.data === undefined) return null;
+  if (
+    post.data === undefined ||
+    comments.data === undefined ||
+    comments.data === null
+  )
+    return null;
 
   return (
     <>
@@ -61,7 +67,7 @@ export function Post(): ReactElement | ReactElement[] | null {
           <Text>
             <strong>User Id:</strong> {post.data.userId}
           </Text>
-          {comments.data.map((comment) => (
+          {comments.data.map((comment: PostComment) => (
             <Text key={comment.id}>
               <strong>Comment:</strong> {comment.body}
             </Text>
