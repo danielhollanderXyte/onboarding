@@ -15,7 +15,7 @@ import {
   Text,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { type CommentPost } from "../components/Post/Post.types.ts";
+import { type PostComment } from "../components/Post/Post.types.ts";
 
 export function Post(): ReactElement | ReactElement[] | null {
   const postParams = useParams();
@@ -67,7 +67,7 @@ export function Post(): ReactElement | ReactElement[] | null {
           <Text>
             <strong>User Id:</strong> {post.data.userId}
           </Text>
-          {comments.data.map((comment: CommentPost) => (
+          {comments.data.map((comment: PostComment) => (
             <Text key={comment.id}>
               <strong>Comment:</strong> {comment.body}
             </Text>
