@@ -11,9 +11,14 @@ export interface Column<TData> {
   cellRenderer?: (row: TData) => ReactNode;
 }
 
+interface Pagination {
+  limit: number;
+  showResults: number[];
+}
 interface TableProps<TData> {
   data: TData[];
   columns: Array<Column<TData>>;
+  pagination: Pagination;
 }
 
 export type Sort = Record<string, "asc" | "desc" | null>;

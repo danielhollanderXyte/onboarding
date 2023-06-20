@@ -20,6 +20,10 @@ import { Link } from "react-router-dom";
 import { type Post } from "../components/Post/Post.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 
+const pagination = {
+  limit: 10,
+  showResults: [10, 20, 50, 100],
+};
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
   const [postsData, setPostsData] = useState<Post[]>(posts.data ?? []);
@@ -125,5 +129,5 @@ export function Posts(): ReactElement | ReactElement[] | null {
     ...post,
     id: !isNaN(post.id) ? post.id : index + 1,
   }));
-  return <Table<Post> data={data} columns={columns} />;
+  return <Table<Post> pagination={pagination} data={data} columns={columns} />;
 }
