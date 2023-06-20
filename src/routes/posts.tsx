@@ -22,15 +22,18 @@ import { IconAlertCircle, IconX } from "@tabler/icons-react";
 
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
-  const [postsData, setPostsData] = useState<Post[]>(posts.data);
+  const [postsData, setPostsData] = useState<Post[]>(posts.data ?? []);
 
   const adjustedData = useMemo(
-    () => (postsData === undefined ? posts.data : postsData),
+    () =>
+      postsData === undefined || postsData.length === 0
+        ? posts.data
+        : postsData,
     [posts.data, postsData]
   );
 
   useEffect(() => {
-    setPostsData(posts.data);
+    setPostsData(posts.data ?? []);
   }, [posts.data]);
 
   const handleDelete = useCallback(
