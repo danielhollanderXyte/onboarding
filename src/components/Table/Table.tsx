@@ -2,8 +2,16 @@ import {
   Table as MantineTable,
   TextInput,
   Pagination as MantinePagination,
+  createStyles,
+  Box,
 } from "@mantine/core";
-import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   IconArrowBarToLeft,
   IconArrowBarToRight,
@@ -20,6 +28,7 @@ import {
   getNextSortValue,
   sortData,
 } from "../../utils/utils.ts";
+import { useElementSize } from "@mantine/hooks";
 
 export interface Column<TData> {
   columnName: string;
@@ -42,9 +51,41 @@ export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
 export function Table<T extends { id: number }>(props: TableProps<T>) {
+  const { classes } = useStyles();
+
+  const { ref: tableRef, height: tableHeight } = useElementSize();
+
+  const { ref: rowRef, height: rowHeight } = useElementSize();
+  const [tableSizes, setTableSizes] = useState({
+    tableHeight,
+    rowHeight,
+  });
+
+  const [windowHeight, setWindowDimensions] = useState(window.innerHeight);
+  const [numberOfRows, setNumberOfRows] = useState<number>(
+    props.pagination.pageSize
+  );
+
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
   const [paginationResults, setPaginationResults] = useState<number>(1);
+
+  useEffect(() => {
+    setTableSizes({ tableHeight, rowHeight });
+
+    const handleResize = () => {
+      setWindowDimensions(window.innerHeight);
+      setNumberOfRows(Math.ceil(windowHeight / rowHeight));
+      console.log("numberOfRows", numberOfRows);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [tableHeight, rowHeight, windowHeight]);
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -104,11 +145,10 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   const paginatedData = useMemo(
     () =>
       sortedData.slice(
-        (paginationResults - 1) * props.pagination.pageSize,
-        (paginationResults - 1) * props.pagination.pageSize +
-          props.pagination.pageSize
+        (paginationResults - 1) * numberOfRows,
+        (paginationResults - 1) * numberOfRows + numberOfRows
       ),
-    [filtersState, sortState, paginationResults, props.data]
+    [filtersState, sortState, paginationResults, props.data, numberOfRows]
   );
 
   const displaySortingIcon = (sortingStatus: string | null) => {
@@ -119,8 +159,8 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   };
 
   return (
-    <>
-      <MantineTable>
+    <Box h="100%" className={classes.container} p="xl">
+      <MantineTable className={classes.table} ref={tableRef}>
         <thead>
           <tr>{filters}</tr>
           <tr>
@@ -139,9 +179,9 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         </thead>
         <tbody>
           {paginatedData.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} ref={rowRef}>
               {props.columns.map((column, index) => (
-                <td key={index}>
+                <td key={index} className={classes.cell}>
                   {column.cellRenderer !== undefined ? (
                     column.cellRenderer(row)
                   ) : (
@@ -153,8 +193,11 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           ))}
         </tbody>
       </MantineTable>
+      <div>windowSize: {windowHeight}</div>
+      <div>tableSize: {tableSizes.tableHeight}</div>
+      <div>rowSize: {tableSizes.rowHeight}</div>
       <MantinePagination
-        total={getMaximumPages(sortedData.length, props.pagination.pageSize)}
+        total={getMaximumPages(sortedData.length, numberOfRows)}
         position="left"
         withEdges
         nextIcon={IconArrowRight}
@@ -165,6 +208,25 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         onChange={setPaginationResults}
         value={paginationResults}
       />
-    </>
+    </Box>
   );
 }
+
+const useStyles = createStyles((theme) => ({
+  container: {
+    display: "grid",
+    gridTemplateRows: "1fr min-content",
+  },
+  table: {
+    // height: "500px", // Set the desired height here
+    overflowY: "auto", // Add vertical scroll if needed
+    height: "100% !important",
+
+    thead: {
+      marginBottom: theme.spacing.md,
+    },
+  },
+  cell: {
+    // fontSize: "1px",
+  },
+}));

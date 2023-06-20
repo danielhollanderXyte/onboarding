@@ -21,7 +21,7 @@ import { type Post } from "../components/Post/Post.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 
 const PAGINATION = {
-  pageSize: 10,
+  pageSize: 20,
 };
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
@@ -92,12 +92,13 @@ export function Posts(): ReactElement | ReactElement[] | null {
             <Button
               variant="default"
               color="reds"
+              size={"xs"}
               onClick={() => {
                 handleDelete(row);
               }}
-            >
-              <IconX aria-label="Delete" color="red" />
-            </Button>
+              children={<IconX aria-label="Delete" color="red" size={15} />}
+              compact={true}
+            />
           );
         },
       },
@@ -132,5 +133,6 @@ export function Posts(): ReactElement | ReactElement[] | null {
     ...post,
     id: !isNaN(post.id) ? post.id : index + 1,
   }));
+
   return <Table<Post> pagination={PAGINATION} data={data} columns={columns} />;
 }

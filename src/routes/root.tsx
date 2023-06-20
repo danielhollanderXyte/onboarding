@@ -1,11 +1,13 @@
-import { Tabs, Anchor } from "@mantine/core";
+import { Tabs, Anchor, Box, createStyles } from "@mantine/core";
 import { IconMessage, IconUser, IconHome } from "@tabler/icons-react";
 import { Outlet, Link } from "react-router-dom";
 import { type ReactElement } from "react";
 
-function Root(): ReactElement {
+export function Root(): ReactElement {
+  const { classes } = useStyles();
+
   return (
-    <>
+    <Box className={classes.container} h="100%">
       <Tabs defaultValue="gallery">
         <Tabs.List>
           <Anchor component={Link} to="/">
@@ -25,11 +27,16 @@ function Root(): ReactElement {
           </Anchor>
         </Tabs.List>
       </Tabs>
-      <div id="detail">
+
+      <Box id="detail">
         <Outlet />
-      </div>
-    </>
+      </Box>
+    </Box>
   );
 }
-
-export default Root;
+const useStyles = createStyles(() => ({
+  container: {
+    display: "grid",
+    gridTemplateRows: "min-content 1fr",
+  },
+}));
