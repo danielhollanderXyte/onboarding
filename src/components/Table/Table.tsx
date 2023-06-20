@@ -1,8 +1,25 @@
-import { Table as MantineTable, TextInput } from "@mantine/core";
+import {
+  Table as MantineTable,
+  TextInput,
+  Pagination as MantinePagination,
+} from "@mantine/core";
 import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
-import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
+import {
+  IconArrowBarToLeft,
+  IconArrowBarToRight,
+  IconArrowLeft,
+  IconArrowRight,
+  IconGripHorizontal,
+  IconSortAscending,
+  IconSortDescending,
+} from "@tabler/icons-react";
 import { omit } from "lodash/fp";
-import { filterData, getNextSortValue, sortData } from "../../utils/utils.ts";
+import {
+  filterData,
+  getMaximumPages,
+  getNextSortValue,
+  sortData,
+} from "../../utils/utils.ts";
 
 export interface Column<TData> {
   columnName: string;
@@ -23,10 +40,19 @@ interface TableProps<TData> {
 
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
-
+interface PaginationResults {
+  firstResultIndex: number;
+  lastResultIndex: number;
+}
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
+  const [paginationResults, setPaginationResults] = useState<PaginationResults>(
+    {
+      firstResultIndex: 0,
+      lastResultIndex: props.pagination.limit,
+    }
+  );
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -79,9 +105,12 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       props.columns
     );
     const sortedData = sortData(filteredData, sortState);
-
-    return sortedData;
-  }, [filtersState, sortState, props.data]);
+    const paginatedData = sortedData.slice(
+      paginationResults.firstResultIndex,
+      paginationResults.lastResultIndex
+    );
+    return { paginatedData, sortedData };
+  }, [filtersState, sortState, props.data, paginationResults]);
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
@@ -90,38 +119,64 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     return null;
   };
 
+  const handlePaginationChange = (page: number) => {
+    const firstResultIndex =
+      props.pagination.limit * page - props.pagination.limit;
+
+    const lastResultIndex = props.pagination.limit * page;
+
+    setPaginationResults({ firstResultIndex, lastResultIndex });
+  };
+
   return (
-    <MantineTable>
-      <thead>
-        <tr>{filters}</tr>
-        <tr>
-          {props.columns.map((column, index) => (
-            <th
-              key={index}
-              onClick={() => {
-                handleSort(column.columnName);
-              }}
-            >
-              {column.header} {displaySortingIcon(sortState[column.columnName])}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {adjustedData.map((row) => (
-          <tr key={row.id}>
+    <>
+      <MantineTable>
+        <thead>
+          <tr>{filters}</tr>
+          <tr>
             {props.columns.map((column, index) => (
-              <td key={index}>
-                {column.cellRenderer !== undefined ? (
-                  column.cellRenderer(row)
-                ) : (
-                  <>{row[column.columnName as keyof T] as string} </>
-                )}
-              </td>
+              <th
+                key={index}
+                onClick={() => {
+                  handleSort(column.columnName);
+                }}
+              >
+                {column.header}{" "}
+                {displaySortingIcon(sortState[column.columnName])}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </MantineTable>
+        </thead>
+        <tbody>
+          {adjustedData.paginatedData.map((row) => (
+            <tr key={row.id}>
+              {props.columns.map((column, index) => (
+                <td key={index}>
+                  {column.cellRenderer !== undefined ? (
+                    column.cellRenderer(row)
+                  ) : (
+                    <>{row[column.columnName as keyof T] as string} </>
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </MantineTable>
+      <MantinePagination
+        total={getMaximumPages(
+          adjustedData.sortedData.length,
+          props.pagination.limit
+        )}
+        position="left"
+        withEdges
+        nextIcon={IconArrowRight}
+        previousIcon={IconArrowLeft}
+        firstIcon={IconArrowBarToLeft}
+        lastIcon={IconArrowBarToRight}
+        dotsIcon={IconGripHorizontal}
+        onChange={handlePaginationChange}
+      />
+    </>
   );
 }

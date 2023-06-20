@@ -92,6 +92,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
               onClick={() => {
                 handleDelete(row);
               }}
+              // disabled={true}
             >
               <IconX aria-label="Delete" color="red" />
             </Button>

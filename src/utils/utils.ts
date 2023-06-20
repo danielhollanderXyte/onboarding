@@ -58,3 +58,7 @@ export function sortData<T>(data: T[], sort: Sort): T[] {
     });
   }
 }
+
+export function getMaximumPages(totalRows: number, rowsPerPage: number) {
+  return Math.ceil(totalRows / rowsPerPage);
+}
