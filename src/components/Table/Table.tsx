@@ -26,11 +26,11 @@ export interface Column<TData> {
   exactMatch: boolean;
   header: string;
   cellRenderer?: (row: TData) => ReactNode;
+  isFilterable: boolean;
 }
 
 interface Pagination {
-  limit: number;
-  showResults: number[];
+  pageSize: number;
 }
 interface TableProps<TData> {
   data: TData[];
@@ -40,19 +40,11 @@ interface TableProps<TData> {
 
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
-interface PaginationResults {
-  firstResultIndex: number;
-  lastResultIndex: number;
-}
+
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
-  const [paginationResults, setPaginationResults] = useState<PaginationResults>(
-    {
-      firstResultIndex: 0,
-      lastResultIndex: props.pagination.limit,
-    }
-  );
+  const [paginationResults, setPaginationResults] = useState<number>(1);
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -87,45 +79,43 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     }));
   };
 
-  const filters = props.columns.map((column, index) => (
-    <td key={index}>
-      <TextInput
-        placeholder={`Filter by ${column.header}`}
-        onChange={(event) => {
-          handleFilterChange(event, column.columnName);
-        }}
-      />
-    </td>
-  ));
+  const filters = props.columns.map(
+    (column, index) =>
+      column.isFilterable && (
+        <td key={index}>
+          <TextInput
+            placeholder={`Filter by ${column.header}`}
+            onChange={(event) => {
+              handleFilterChange(event, column.columnName);
+            }}
+          />
+        </td>
+      )
+  );
 
-  const adjustedData = useMemo(() => {
-    const filteredData = filterData(
-      [...props.data],
-      filtersState,
-      props.columns
-    );
-    const sortedData = sortData(filteredData, sortState);
-    const paginatedData = sortedData.slice(
-      paginationResults.firstResultIndex,
-      paginationResults.lastResultIndex
-    );
-    return { paginatedData, sortedData };
-  }, [filtersState, sortState, props.data, paginationResults]);
+  const filteredData = useMemo(
+    () => filterData([...props.data], filtersState, props.columns),
+    [filtersState, props.data]
+  );
+  const sortedData = useMemo(
+    () => sortData(filteredData, sortState),
+    [filteredData, sortState]
+  );
+  const paginatedData = useMemo(
+    () =>
+      sortedData.slice(
+        (paginationResults - 1) * props.pagination.pageSize,
+        (paginationResults - 1) * props.pagination.pageSize +
+          props.pagination.pageSize
+      ),
+    [filtersState, sortState, paginationResults, props.data]
+  );
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
     else if (sortingStatus === "asc") return <IconSortAscending />;
 
     return null;
-  };
-
-  const handlePaginationChange = (page: number) => {
-    const firstResultIndex =
-      props.pagination.limit * page - props.pagination.limit;
-
-    const lastResultIndex = props.pagination.limit * page;
-
-    setPaginationResults({ firstResultIndex, lastResultIndex });
   };
 
   return (
@@ -148,7 +138,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           </tr>
         </thead>
         <tbody>
-          {adjustedData.paginatedData.map((row) => (
+          {paginatedData.map((row) => (
             <tr key={row.id}>
               {props.columns.map((column, index) => (
                 <td key={index}>
@@ -164,10 +154,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         </tbody>
       </MantineTable>
       <MantinePagination
-        total={getMaximumPages(
-          adjustedData.sortedData.length,
-          props.pagination.limit
-        )}
+        total={getMaximumPages(sortedData.length, props.pagination.pageSize)}
         position="left"
         withEdges
         nextIcon={IconArrowRight}
@@ -175,7 +162,8 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         firstIcon={IconArrowBarToLeft}
         lastIcon={IconArrowBarToRight}
         dotsIcon={IconGripHorizontal}
-        onChange={handlePaginationChange}
+        onChange={setPaginationResults}
+        value={paginationResults}
       />
     </>
   );

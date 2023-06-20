@@ -15,9 +15,8 @@ import { type User } from "../components/User/User.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-const pagination = {
-  limit: 5,
-  showResults: [5, 10, 20, 50, 100],
+const PAGINATION = {
+  pageSize: 5,
 };
 export function Users() {
   const users = useUsers();
@@ -47,6 +46,7 @@ export function Users() {
   const columns = useMemo(() => {
     return [
       {
+        isFilterable: true,
         columnName: "name",
         cellRenderer: (row: User) => {
           return (
@@ -59,16 +59,19 @@ export function Users() {
         exactMatch: false,
       },
       {
+        isFilterable: true,
         columnName: "username",
         header: "Username",
         exactMatch: false,
       },
       {
+        isFilterable: true,
         columnName: "email",
         header: "Email",
         exactMatch: false,
       },
       {
+        isFilterable: true,
         columnName: "addressCombined",
         header: "Street",
         exactMatch: false,
@@ -80,6 +83,7 @@ export function Users() {
         ),
       },
       {
+        isFilterable: false,
         columnName: "delete",
         exactMatch: true,
         header: "",
@@ -137,5 +141,5 @@ export function Users() {
     // I tried to avoid it...with the handleNestedObject util
     addressCombined: user.address.city + user.address.street,
   }));
-  return <Table pagination={pagination} data={data} columns={columns} />;
+  return <Table pagination={PAGINATION} data={data} columns={columns} />;
 }

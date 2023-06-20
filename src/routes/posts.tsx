@@ -20,9 +20,8 @@ import { Link } from "react-router-dom";
 import { type Post } from "../components/Post/Post.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 
-const pagination = {
-  limit: 10,
-  showResults: [10, 20, 50, 100],
+const PAGINATION = {
+  pageSize: 10,
 };
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
@@ -52,6 +51,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
   const columns: Array<Column<Post>> = useMemo(() => {
     return [
       {
+        isFilterable: true,
         columnName: "id",
         exactMatch: true,
         header: "Id",
@@ -64,11 +64,13 @@ export function Posts(): ReactElement | ReactElement[] | null {
         },
       },
       {
+        isFilterable: true,
         columnName: "title",
         exactMatch: false,
         header: "Title",
       },
       {
+        isFilterable: true,
         columnName: "body",
         exactMatch: false,
         header: "Body",
@@ -81,6 +83,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
         },
       },
       {
+        isFilterable: false,
         columnName: "delete",
         exactMatch: true,
         header: "",
@@ -92,7 +95,6 @@ export function Posts(): ReactElement | ReactElement[] | null {
               onClick={() => {
                 handleDelete(row);
               }}
-              // disabled={true}
             >
               <IconX aria-label="Delete" color="red" />
             </Button>
@@ -130,5 +132,5 @@ export function Posts(): ReactElement | ReactElement[] | null {
     ...post,
     id: !isNaN(post.id) ? post.id : index + 1,
   }));
-  return <Table<Post> pagination={pagination} data={data} columns={columns} />;
+  return <Table<Post> pagination={PAGINATION} data={data} columns={columns} />;
 }
