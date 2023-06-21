@@ -107,7 +107,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           <tr key={row.id}>
             {props.columns.map((column, index) => (
               <td key={index}>
-                {column.cellRenderer != null ? (
+                {column.cellRenderer !== undefined ? (
                   column.cellRenderer(row)
                 ) : (
                   <>{row[column.columnName as keyof T] as string} </>
