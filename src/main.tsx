@@ -33,18 +33,7 @@ const router = createBrowserRouter(routerDefinitions);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <MantineProvider
-      withGlobalStyles
-      withNormalizeCSS
-      theme={{
-        globalStyles: () => ({
-          "html, body, #root": {
-            height: "100%",
-            width: "100%",
-          },
-        }),
-      }}
-    >
+    <MantineProvider withGlobalStyles withNormalizeCSS>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>

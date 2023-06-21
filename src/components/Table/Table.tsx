@@ -53,13 +53,7 @@ export type Filter = Record<string, string>;
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { classes } = useStyles();
 
-  const { ref: tableRef, height: tableHeight } = useElementSize();
-
   const { ref: rowRef, height: rowHeight } = useElementSize();
-  const [tableSizes, setTableSizes] = useState({
-    tableHeight,
-    rowHeight,
-  });
 
   const [windowHeight, setWindowDimensions] = useState(window.innerHeight);
   const [numberOfRows, setNumberOfRows] = useState<number>(
@@ -71,11 +65,11 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   const [paginationResults, setPaginationResults] = useState<number>(1);
 
   useEffect(() => {
-    setTableSizes({ tableHeight, rowHeight });
-
     const handleResize = () => {
       setWindowDimensions(window.innerHeight);
-      setNumberOfRows(Math.ceil(windowHeight / rowHeight));
+      // -5 rows to account for the header, pagination, padding and filter row
+      // Maybe these rows need to be dynamic?
+      setNumberOfRows(Math.ceil(windowHeight / rowHeight - 5));
       console.log("numberOfRows", numberOfRows);
     };
 
@@ -85,7 +79,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [tableHeight, rowHeight, windowHeight]);
+  }, [rowHeight, windowHeight]);
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -160,7 +154,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
 
   return (
     <Box h="100%" className={classes.container} p="xl">
-      <MantineTable className={classes.table} ref={tableRef}>
+      <MantineTable className={classes.table}>
         <thead>
           <tr>{filters}</tr>
           <tr>
@@ -179,7 +173,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         </thead>
         <tbody>
           {paginatedData.map((row) => (
-            <tr key={row.id} ref={rowRef}>
+            <tr key={row.id} ref={rowRef} className={classes.table}>
               {props.columns.map((column, index) => (
                 <td key={index} className={classes.cell}>
                   {column.cellRenderer !== undefined ? (
@@ -193,9 +187,6 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           ))}
         </tbody>
       </MantineTable>
-      <div>windowSize: {windowHeight}</div>
-      <div>tableSize: {tableSizes.tableHeight}</div>
-      <div>rowSize: {tableSizes.rowHeight}</div>
       <MantinePagination
         total={getMaximumPages(sortedData.length, numberOfRows)}
         position="left"
@@ -218,10 +209,7 @@ const useStyles = createStyles((theme) => ({
     gridTemplateRows: "1fr min-content",
   },
   table: {
-    // height: "500px", // Set the desired height here
     overflowY: "auto", // Add vertical scroll if needed
-    height: "100% !important",
-
     thead: {
       marginBottom: theme.spacing.md,
     },
