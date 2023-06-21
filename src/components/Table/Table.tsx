@@ -173,7 +173,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
         <MantinePagination
           total={getMaximumPages(
             sortedData.length,
-            Math.ceil(tableHeight / props.rowHeight)
+            Math.ceil(adjustedTableHeight / props.rowHeight)
           )}
           position="left"
           withEdges
