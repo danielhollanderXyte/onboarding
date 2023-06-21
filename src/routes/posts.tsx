@@ -20,9 +20,7 @@ import { Link } from "react-router-dom";
 import { type Post } from "../components/Post/Post.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 
-const PAGINATION = {
-  pageSize: 20,
-};
+const ROW_HEIGHT = 40;
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
   const [postsData, setPostsData] = useState<Post[]>(posts.data ?? []);
@@ -134,5 +132,5 @@ export function Posts(): ReactElement | ReactElement[] | null {
     id: !isNaN(post.id) ? post.id : index + 1,
   }));
 
-  return <Table<Post> pagination={PAGINATION} data={data} columns={columns} />;
+  return <Table<Post> rowHeight={ROW_HEIGHT} data={data} columns={columns} />;
 }

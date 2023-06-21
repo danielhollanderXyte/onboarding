@@ -15,9 +15,8 @@ import { type User } from "../components/User/User.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-const PAGINATION = {
-  pageSize: 5,
-};
+const ROW_HEIGHT = 80;
+
 export function Users() {
   const users = useUsers();
   const [usersData, setUsersData] = useState<User[]>(users.data ?? []);
@@ -141,5 +140,5 @@ export function Users() {
     // I tried to avoid it...with the handleNestedObject util
     addressCombined: user.address.city + user.address.street,
   }));
-  return <Table pagination={PAGINATION} data={data} columns={columns} />;
+  return <Table rowHeight={ROW_HEIGHT} data={data} columns={columns} />;
 }

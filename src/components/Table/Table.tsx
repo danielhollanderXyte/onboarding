@@ -5,6 +5,7 @@ import {
   createStyles,
   Box,
 } from "@mantine/core";
+
 import {
   type ChangeEvent,
   type ReactNode,
@@ -12,6 +13,7 @@ import {
   useMemo,
   useState,
 } from "react";
+
 import {
   IconArrowBarToLeft,
   IconArrowBarToRight,
@@ -21,13 +23,16 @@ import {
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons-react";
+
 import { omit } from "lodash/fp";
+
 import {
   filterData,
   getMaximumPages,
   getNextSortValue,
   sortData,
 } from "../../utils/utils.ts";
+
 import { useElementSize } from "@mantine/hooks";
 
 export interface Column<TData> {
@@ -38,46 +43,61 @@ export interface Column<TData> {
   isFilterable: boolean;
 }
 
-interface Pagination {
-  pageSize: number;
-}
 interface TableProps<TData> {
   data: TData[];
   columns: Array<Column<TData>>;
-  pagination: Pagination;
+  rowHeight: number;
 }
 
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
+const DEBOUNCE_DELAY = 20;
+const TABLE_PADDING = 30;
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { classes } = useStyles();
 
-  const { ref: rowRef, height: rowHeight } = useElementSize();
+  const { ref: tableRef, height: tableHeight } = useElementSize();
+  const { ref: paginationRef, height: paginationHeight } = useElementSize();
 
-  const [windowHeight, setWindowDimensions] = useState(window.innerHeight);
+  const [adjustedTableHeight, setTableHeight] = useState(tableHeight);
   const [numberOfRows, setNumberOfRows] = useState<number>(
-    props.pagination.pageSize
+    adjustedTableHeight / props.rowHeight
   );
 
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
-  const [paginationResults, setPaginationResults] = useState<number>(1);
+  const [pageIndex, setPageIndex] = useState<number>(1);
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions(window.innerHeight);
-      // -5 rows to account for the header, pagination, padding and filter row
-      // Maybe these rows need to be dynamic?
-      setNumberOfRows(Math.ceil(windowHeight / rowHeight - 5));
+    setTableHeight(tableHeight);
+    setNumberOfRows(
+      Math.ceil(
+        (tableHeight - paginationHeight - TABLE_PADDING) / props.rowHeight
+      )
+    );
+  }, [tableHeight]);
+
+  useEffect(() => {
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    const handleResize = (e) => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setTableHeight((tableHeight / e.target.innerHeight) * tableHeight);
+        setNumberOfRows(
+          Math.ceil(tableHeight - paginationHeight - TABLE_PADDING) /
+            props.rowHeight
+        );
+      }, DEBOUNCE_DELAY);
     };
 
     window.addEventListener("resize", handleResize);
 
     return () => {
+      clearTimeout(resizeTimer);
       window.removeEventListener("resize", handleResize);
     };
-  }, [rowHeight, windowHeight]);
+  }, [tableHeight, adjustedTableHeight]);
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -130,18 +150,18 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     () => filterData([...props.data], filtersState, props.columns),
     [filtersState, props.data]
   );
+
   const sortedData = useMemo(
     () => sortData(filteredData, sortState),
     [filteredData, sortState]
   );
-  const paginatedData = useMemo(
-    () =>
-      sortedData.slice(
-        (paginationResults - 1) * numberOfRows,
-        (paginationResults - 1) * numberOfRows + numberOfRows
-      ),
-    [filtersState, sortState, paginationResults, props.data, numberOfRows]
-  );
+
+  const paginatedData = useMemo(() => {
+    return sortedData.slice(
+      (pageIndex - 1) * numberOfRows,
+      (pageIndex - 1) * numberOfRows + numberOfRows
+    );
+  }, [filtersState, sortState, pageIndex, props.data, numberOfRows]);
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
@@ -151,7 +171,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   };
 
   return (
-    <Box h="100%" className={classes.container} p="xl">
+    <Box h="100%" className={classes.container}>
       <MantineTable className={classes.table}>
         <thead>
           <tr>{filters}</tr>
@@ -169,9 +189,9 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody ref={tableRef}>
           {paginatedData.map((row) => (
-            <tr key={row.id} ref={rowRef} className={classes.table}>
+            <tr key={row.id}>
               {props.columns.map((column, index) => (
                 <td key={index}>
                   {column.cellRenderer !== undefined ? (
@@ -185,18 +205,20 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           ))}
         </tbody>
       </MantineTable>
-      <MantinePagination
-        total={getMaximumPages(sortedData.length, numberOfRows)}
-        position="left"
-        withEdges
-        nextIcon={IconArrowRight}
-        previousIcon={IconArrowLeft}
-        firstIcon={IconArrowBarToLeft}
-        lastIcon={IconArrowBarToRight}
-        dotsIcon={IconGripHorizontal}
-        onChange={setPaginationResults}
-        value={paginationResults}
-      />
+      <Box ref={paginationRef}>
+        <MantinePagination
+          total={getMaximumPages(sortedData.length, numberOfRows)}
+          position="left"
+          withEdges
+          nextIcon={IconArrowRight}
+          previousIcon={IconArrowLeft}
+          firstIcon={IconArrowBarToLeft}
+          lastIcon={IconArrowBarToRight}
+          dotsIcon={IconGripHorizontal}
+          onChange={setPageIndex}
+          value={pageIndex}
+        />
+      </Box>
     </Box>
   );
 }
@@ -205,11 +227,16 @@ const useStyles = createStyles((theme) => ({
   container: {
     display: "grid",
     gridTemplateRows: "1fr min-content",
+    padding: `${TABLE_PADDING}px`,
   },
   table: {
     overflowY: "auto", // Add vertical scroll if needed
+    height: "100%",
     thead: {
       marginBottom: theme.spacing.md,
+    },
+    tbody: {
+      height: "100%",
     },
   },
 }));

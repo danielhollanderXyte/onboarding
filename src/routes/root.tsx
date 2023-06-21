@@ -7,8 +7,8 @@ export function Root(): ReactElement {
   const { classes } = useStyles();
 
   return (
-    <Box className={classes.container} h="100%">
-      <Tabs defaultValue="gallery">
+    <Box>
+      <Tabs defaultValue="gallery" className={classes.container}>
         <Tabs.List>
           <Anchor component={Link} to="/">
             <Tabs.Tab value="Home" icon={<IconHome size="1rem" />}>
@@ -28,7 +28,7 @@ export function Root(): ReactElement {
         </Tabs.List>
       </Tabs>
 
-      <Box id="detail">
+      <Box id="detail" className={classes.detail}>
         <Outlet />
       </Box>
     </Box>
@@ -38,5 +38,8 @@ const useStyles = createStyles(() => ({
   container: {
     display: "grid",
     gridTemplateRows: "min-content 1fr",
+  },
+  detail: {
+    height: "100%",
   },
 }));

@@ -10,7 +10,7 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import { ErrorPage } from "./error-page.tsx";
-import { Users } from "./routes/users.tsx";
+import { Users } from "./routes/Users.tsx";
 import { User } from "./routes/user.tsx";
 import { Posts } from "./routes/Posts.tsx";
 import { Post } from "./routes/post.tsx";
@@ -33,7 +33,18 @@ const router = createBrowserRouter(routerDefinitions);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <MantineProvider withGlobalStyles withNormalizeCSS>
+    <MantineProvider
+      withGlobalStyles
+      withNormalizeCSS
+      theme={{
+        globalStyles: () => ({
+          "html, body, #root, #root > div": {
+            height: "100%",
+            width: "100%",
+          },
+        }),
+      }}
+    >
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
