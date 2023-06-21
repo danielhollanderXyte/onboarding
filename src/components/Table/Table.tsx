@@ -124,10 +124,6 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   );
 
   const paginatedData = useMemo(() => {
-    console.log(
-      "paginatedData",
-      Math.ceil(adjustedTableHeight / props.rowHeight)
-    );
     const numberOfRows = Math.ceil(adjustedTableHeight / props.rowHeight);
     return sortedData.slice(
       (pageIndex - 1) * numberOfRows,
