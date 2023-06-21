@@ -53,7 +53,7 @@ export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
 const DEBOUNCE_DELAY = 20;
-const TABLE_PADDING = 30;
+const TABLE_PADDING = 50;
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { classes } = useStyles();
 
