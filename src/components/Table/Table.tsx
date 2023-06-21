@@ -61,10 +61,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   const [sortState, setSorting] = useState<Sort>({});
   const [pageIndex, setPageIndex] = useState<number>(1);
 
-  const adjustedTableHeight = useMemo(
-    () => (tableHeight / window.innerHeight) * tableHeight,
-    [tableHeight]
-  );
+  const adjustedTableHeight = (tableHeight / window.innerHeight) * tableHeight;
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -99,23 +96,22 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     }));
   };
 
-  const filters = props.columns.map(
-    (column, index) =>
-      column.isFilterable && (
-        <td key={index}>
-          <TextInput
-            placeholder={`Filter by ${column.header}`}
-            onChange={(event) => {
-              handleFilterChange(event, column.columnName);
-            }}
-          />
-        </td>
-      )
+  const filters = props.columns.map((column, index) =>
+    column.isFilterable ? (
+      <td key={index}>
+        <TextInput
+          placeholder={`Filter by ${column.header}`}
+          onChange={(event) => {
+            handleFilterChange(event, column.columnName);
+          }}
+        />
+      </td>
+    ) : null
   );
 
   const filteredData = useMemo(
     () => filterData([...props.data], filtersState, props.columns),
-    [filtersState, props.data]
+    [filtersState, props.data, props.columns]
   );
 
   const sortedData = useMemo(
@@ -129,14 +125,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       (pageIndex - 1) * numberOfRows,
       (pageIndex - 1) * numberOfRows + numberOfRows
     );
-  }, [
-    filtersState,
-    sortState,
-    pageIndex,
-    props.data,
-    tableHeight,
-    adjustedTableHeight,
-  ]);
+  }, [pageIndex, adjustedTableHeight, sortedData, props.rowHeight]);
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
