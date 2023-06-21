@@ -52,7 +52,7 @@ interface TableProps<TData> {
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
-const DEBOUNCE_DELAY = 20;
+const DEBOUNCE_DELAY = 10;
 const TABLE_PADDING = 50;
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { classes } = useStyles();
@@ -72,9 +72,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   useEffect(() => {
     setTableHeight(tableHeight);
     setNumberOfRows(
-      Math.ceil(
-        (tableHeight - paginationHeight - TABLE_PADDING) / props.rowHeight
-      )
+      Math.ceil((tableHeight - paginationHeight) / props.rowHeight)
     );
   }, [tableHeight]);
 
@@ -85,8 +83,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       resizeTimer = setTimeout(() => {
         setTableHeight((tableHeight / e.target.innerHeight) * tableHeight);
         setNumberOfRows(
-          Math.ceil(tableHeight - paginationHeight - TABLE_PADDING) /
-            props.rowHeight
+          Math.ceil(tableHeight - paginationHeight) / props.rowHeight
         );
       }, DEBOUNCE_DELAY);
     };
