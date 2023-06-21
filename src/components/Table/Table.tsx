@@ -9,7 +9,7 @@ import {
 import {
   type ChangeEvent,
   type ReactNode,
-  useEffect,
+  // useEffect,
   useMemo,
   useState,
 } from "react";
@@ -52,43 +52,19 @@ interface TableProps<TData> {
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
-const DEBOUNCE_DELAY = 20;
-
-const TABLE_PADDING = 50;
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { classes } = useStyles();
 
   const { ref: tableRef, height: tableHeight } = useElementSize();
-  const { ref: paginationRef, height: paginationHeight } = useElementSize();
-
-  const [adjustedTableHeight, setAdjustedTableHeight] = useState(tableHeight);
 
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
   const [pageIndex, setPageIndex] = useState<number>(1);
 
-  useEffect(() => {
-    setAdjustedTableHeight(tableHeight);
-  }, [tableHeight]);
-
-  useEffect(() => {
-    let resizeTimer: ReturnType<typeof setTimeout>;
-    const handleResize = (e) => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        setAdjustedTableHeight(
-          (tableHeight / e.target.innerHeight) * tableHeight
-        );
-      }, DEBOUNCE_DELAY);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      clearTimeout(resizeTimer);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [adjustedTableHeight]);
+  const adjustedTableHeight = useMemo(
+    () => (tableHeight / window.innerHeight) * tableHeight,
+    [tableHeight]
+  );
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -148,9 +124,11 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   );
 
   const paginatedData = useMemo(() => {
-    const numberOfRows = Math.ceil(
-      (adjustedTableHeight - paginationHeight) / props.rowHeight
+    console.log(
+      "paginatedData",
+      Math.ceil(adjustedTableHeight / props.rowHeight)
     );
+    const numberOfRows = Math.ceil(adjustedTableHeight / props.rowHeight);
     return sortedData.slice(
       (pageIndex - 1) * numberOfRows,
       (pageIndex - 1) * numberOfRows + numberOfRows
@@ -206,11 +184,11 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           ))}
         </tbody>
       </MantineTable>
-      <Box ref={paginationRef}>
+      <Box>
         <MantinePagination
           total={getMaximumPages(
             sortedData.length,
-            Math.ceil(tableHeight - paginationHeight) / props.rowHeight
+            Math.ceil(tableHeight / props.rowHeight)
           )}
           position="left"
           withEdges
@@ -231,7 +209,7 @@ const useStyles = createStyles((theme) => ({
   container: {
     display: "grid",
     gridTemplateRows: "1fr min-content",
-    padding: `${TABLE_PADDING}px`,
+    padding: `50px`,
   },
   table: {
     overflowY: "auto", // Add vertical scroll if needed
