@@ -70,12 +70,10 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       // -5 rows to account for the header, pagination, padding and filter row
       // Maybe these rows need to be dynamic?
       setNumberOfRows(Math.ceil(windowHeight / rowHeight - 5));
-      console.log("numberOfRows", numberOfRows);
     };
 
     window.addEventListener("resize", handleResize);
 
-    // Cleanup the event listener on component unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -175,7 +173,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
           {paginatedData.map((row) => (
             <tr key={row.id} ref={rowRef} className={classes.table}>
               {props.columns.map((column, index) => (
-                <td key={index} className={classes.cell}>
+                <td key={index}>
                   {column.cellRenderer !== undefined ? (
                     column.cellRenderer(row)
                   ) : (
@@ -213,8 +211,5 @@ const useStyles = createStyles((theme) => ({
     thead: {
       marginBottom: theme.spacing.md,
     },
-  },
-  cell: {
-    // fontSize: "1px",
   },
 }));
