@@ -52,7 +52,8 @@ interface TableProps<TData> {
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
-const DEBOUNCE_DELAY = 10;
+const DEBOUNCE_DELAY = 20;
+
 const TABLE_PADDING = 50;
 export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { classes } = useStyles();
@@ -60,20 +61,14 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   const { ref: tableRef, height: tableHeight } = useElementSize();
   const { ref: paginationRef, height: paginationHeight } = useElementSize();
 
-  const [adjustedTableHeight, setTableHeight] = useState(tableHeight);
-  const [numberOfRows, setNumberOfRows] = useState<number>(
-    adjustedTableHeight / props.rowHeight
-  );
+  const [adjustedTableHeight, setAdjustedTableHeight] = useState(tableHeight);
 
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
   const [pageIndex, setPageIndex] = useState<number>(1);
 
   useEffect(() => {
-    setTableHeight(tableHeight);
-    setNumberOfRows(
-      Math.ceil((tableHeight - paginationHeight) / props.rowHeight)
-    );
+    setAdjustedTableHeight(tableHeight);
   }, [tableHeight]);
 
   useEffect(() => {
@@ -81,9 +76,8 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     const handleResize = (e) => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        setTableHeight((tableHeight / e.target.innerHeight) * tableHeight);
-        setNumberOfRows(
-          Math.ceil(tableHeight - paginationHeight) / props.rowHeight
+        setAdjustedTableHeight(
+          (tableHeight / e.target.innerHeight) * tableHeight
         );
       }, DEBOUNCE_DELAY);
     };
@@ -94,7 +88,7 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       clearTimeout(resizeTimer);
       window.removeEventListener("resize", handleResize);
     };
-  }, [tableHeight, adjustedTableHeight]);
+  }, [adjustedTableHeight]);
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -154,11 +148,21 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   );
 
   const paginatedData = useMemo(() => {
+    const numberOfRows = Math.ceil(
+      (adjustedTableHeight - paginationHeight) / props.rowHeight
+    );
     return sortedData.slice(
       (pageIndex - 1) * numberOfRows,
       (pageIndex - 1) * numberOfRows + numberOfRows
     );
-  }, [filtersState, sortState, pageIndex, props.data, numberOfRows]);
+  }, [
+    filtersState,
+    sortState,
+    pageIndex,
+    props.data,
+    tableHeight,
+    adjustedTableHeight,
+  ]);
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
@@ -204,7 +208,10 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
       </MantineTable>
       <Box ref={paginationRef}>
         <MantinePagination
-          total={getMaximumPages(sortedData.length, numberOfRows)}
+          total={getMaximumPages(
+            sortedData.length,
+            Math.ceil(tableHeight - paginationHeight) / props.rowHeight
+          )}
           position="left"
           withEdges
           nextIcon={IconArrowRight}
