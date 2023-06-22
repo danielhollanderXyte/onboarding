@@ -142,5 +142,8 @@ const useStyles = createStyles((theme) => ({
     tbody: {
       height: "100%",
     },
+    tr: {
+      verticalAlign: "top",
+    },
   },
 }));
