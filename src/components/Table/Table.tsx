@@ -48,14 +48,21 @@ export function Table<T extends { id: number }>({
   rowHeight,
 }: TableProps<T>) {
   const { classes } = useStyles();
-  const { ref: tableRef, height: tableHeight } = useElementSize();
-
+  // const { ref: tableRef, height: tableHeight } = useElementSize();
+  const [windowHeight, setWindowHeight] = useState<number>(window.innerHeight);
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
   const [pageIndex, setPageIndex] = useState<number>(1);
 
-  const adjustedTableHeight = (tableHeight / window.innerHeight) * tableHeight;
+  const adjustedTableHeight = useMemo(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
 
+    window.addEventListener("resize", handleResize);
+
+    return (windowHeight / rowHeight - 5) * rowHeight;
+  }, [windowHeight, rowHeight]);
   const onDataFiltered = (inputValue, columnName) => {
     if (!inputValue && Boolean(filtersState[columnName])) {
       setFilters((prevState) => omit([columnName], prevState));
@@ -103,7 +110,7 @@ export function Table<T extends { id: number }>({
         <TableBody
           columns={columns}
           paginatedData={paginatedData}
-          ref={tableRef}
+          // ref={tableRef}
         />
       </MantineTable>
       <Box>
@@ -135,15 +142,12 @@ const useStyles = createStyles((theme) => ({
   },
   table: {
     overflowY: "auto", // Add vertical scroll if needed
-    height: "100%",
+    // height: "100%",
     thead: {
       marginBottom: theme.spacing.md,
     },
     tbody: {
-      height: "100%",
-    },
-    tr: {
-      verticalAlign: "top",
+      // height: "100%",
     },
   },
 }));

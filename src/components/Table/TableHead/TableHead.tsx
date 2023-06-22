@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { type Column, type Sort } from "../Table.tsx";
-import { getNextSortValue, sortData } from "../../../utils/utils.ts";
+import { getNextSortValue } from "../../../utils/utils.ts";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 
 import { Filters } from "../Filters/Filters.tsx";
