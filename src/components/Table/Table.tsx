@@ -19,8 +19,6 @@ import { omit } from "lodash/fp";
 
 import { filterData, getMaximumPages, sortData } from "../../utils/utils.ts";
 
-import { useElementSize } from "@mantine/hooks";
-
 import { TableHead } from "./TableHead/TableHead.tsx";
 
 import { TableBody } from "./TableBody/TableBody.tsx";
@@ -48,7 +46,7 @@ export function Table<T extends { id: number }>({
   rowHeight,
 }: TableProps<T>) {
   const { classes } = useStyles();
-  // const { ref: tableRef, height: tableHeight } = useElementSize();
+
   const [windowHeight, setWindowHeight] = useState<number>(window.innerHeight);
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
@@ -107,11 +105,7 @@ export function Table<T extends { id: number }>({
           onDataFiltered={onDataFiltered}
           filtersState={filtersState}
         />
-        <TableBody
-          columns={columns}
-          paginatedData={paginatedData}
-          // ref={tableRef}
-        />
+        <TableBody columns={columns} paginatedData={paginatedData} />
       </MantineTable>
       <Box>
         <MantinePagination
@@ -142,12 +136,8 @@ const useStyles = createStyles((theme) => ({
   },
   table: {
     overflowY: "auto", // Add vertical scroll if needed
-    // height: "100%",
     thead: {
       marginBottom: theme.spacing.md,
-    },
-    tbody: {
-      // height: "100%",
     },
   },
 }));
