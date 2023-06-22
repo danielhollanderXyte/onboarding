@@ -1,4 +1,4 @@
-import { isEmpty, toLower } from "lodash";
+import { isEmpty, toLower, orderBy } from "lodash";
 import {
   type Column,
   type Filter,
@@ -41,21 +41,7 @@ export function filterData<TData>(
 export function sortData<T>(data: T[], sort: Sort): T[] {
   if (isEmpty(sort)) return data;
   else {
-    return data.sort((rowA, rowB) => {
-      const columnName = Object.keys(sort)[0];
-      const direction = sort[columnName];
-
-      if (direction === null) return 0;
-
-      const rowAValue = rowA[columnName as keyof T] as string;
-      const rowBValue = rowB[columnName as keyof T] as string;
-
-      return (
-        rowAValue.toString().localeCompare(rowBValue.toString(), "en", {
-          numeric: true,
-        }) * (direction === "asc" ? 1 : -1)
-      );
-    });
+    return orderBy(data, Object.keys(sort)[0], Object.values(sort)[0]);
   }
 }
 

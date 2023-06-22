@@ -38,9 +38,12 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       withNormalizeCSS
       theme={{
         globalStyles: () => ({
-          "html, body, #root, #root > div": {
+          "html, body, #root": {
             height: "100%",
             width: "100%",
+          },
+          "#root > div": {
+            height: "100%",
           },
         }),
       }}
