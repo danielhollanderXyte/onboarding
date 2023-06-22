@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 import { type Post } from "../components/Post/Post.types.ts";
 import { IconAlertCircle, IconX } from "@tabler/icons-react";
 
+const ROW_HEIGHT = 40;
 export function Posts(): ReactElement | ReactElement[] | null {
   const posts = usePosts();
   const [postsData, setPostsData] = useState<Post[]>(posts.data ?? []);
@@ -48,6 +49,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
   const columns: Array<Column<Post>> = useMemo(() => {
     return [
       {
+        isFilterable: true,
         columnName: "id",
         exactMatch: true,
         header: "Id",
@@ -60,11 +62,13 @@ export function Posts(): ReactElement | ReactElement[] | null {
         },
       },
       {
+        isFilterable: true,
         columnName: "title",
         exactMatch: false,
         header: "Title",
       },
       {
+        isFilterable: true,
         columnName: "body",
         exactMatch: false,
         header: "Body",
@@ -77,6 +81,7 @@ export function Posts(): ReactElement | ReactElement[] | null {
         },
       },
       {
+        isFilterable: false,
         columnName: "delete",
         exactMatch: true,
         header: "",
@@ -85,12 +90,13 @@ export function Posts(): ReactElement | ReactElement[] | null {
             <Button
               variant="default"
               color="reds"
+              size={"xs"}
               onClick={() => {
                 handleDelete(row);
               }}
-            >
-              <IconX aria-label="Delete" color="red" />
-            </Button>
+              children={<IconX aria-label="Delete" color="red" size={15} />}
+              compact={true}
+            />
           );
         },
       },
@@ -125,5 +131,6 @@ export function Posts(): ReactElement | ReactElement[] | null {
     ...post,
     id: !isNaN(post.id) ? post.id : index + 1,
   }));
-  return <Table<Post> data={data} columns={columns} />;
+
+  return <Table<Post> rowHeight={ROW_HEIGHT} data={data} columns={columns} />;
 }

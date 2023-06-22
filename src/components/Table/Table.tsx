@@ -1,27 +1,67 @@
-import { Table as MantineTable, TextInput } from "@mantine/core";
-import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
-import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
+import {
+  Table as MantineTable,
+  TextInput,
+  Pagination as MantinePagination,
+  createStyles,
+  Box,
+} from "@mantine/core";
+
+import {
+  type ChangeEvent,
+  type ReactNode,
+  // useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  IconArrowBarToLeft,
+  IconArrowBarToRight,
+  IconArrowLeft,
+  IconArrowRight,
+  IconGripHorizontal,
+  IconSortAscending,
+  IconSortDescending,
+} from "@tabler/icons-react";
+
 import { omit } from "lodash/fp";
-import { filterData, getNextSortValue, sortData } from "../../utils/utils.ts";
+
+import {
+  filterData,
+  getMaximumPages,
+  getNextSortValue,
+  sortData,
+} from "../../utils/utils.ts";
+
+import { useElementSize } from "@mantine/hooks";
 
 export interface Column<TData> {
   columnName: string;
   exactMatch: boolean;
   header: string;
   cellRenderer?: (row: TData) => ReactNode;
+  isFilterable: boolean;
 }
 
 interface TableProps<TData> {
   data: TData[];
   columns: Array<Column<TData>>;
+  rowHeight: number;
 }
 
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
 export function Table<T extends { id: number }>(props: TableProps<T>) {
+  const { classes } = useStyles();
+
+  const { ref: tableRef, height: tableHeight } = useElementSize();
+
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
+  const [pageIndex, setPageIndex] = useState<number>(1);
+
+  const adjustedTableHeight = (tableHeight / window.innerHeight) * tableHeight;
 
   const handleSort = (columnName: string) => {
     setSorting((prevSorting) => {
@@ -56,27 +96,36 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
     }));
   };
 
-  const filters = props.columns.map((column, index) => (
-    <td key={index}>
-      <TextInput
-        placeholder={`Filter by ${column.header}`}
-        onChange={(event) => {
-          handleFilterChange(event, column.columnName);
-        }}
-      />
-    </td>
-  ));
+  const filters = props.columns.map((column, index) =>
+    column.isFilterable ? (
+      <td key={index}>
+        <TextInput
+          placeholder={`Filter by ${column.header}`}
+          onChange={(event) => {
+            handleFilterChange(event, column.columnName);
+          }}
+        />
+      </td>
+    ) : null
+  );
 
-  const adjustedData = useMemo(() => {
-    const filteredData = filterData(
-      [...props.data],
-      filtersState,
-      props.columns
+  const filteredData = useMemo(
+    () => filterData([...props.data], filtersState, props.columns),
+    [filtersState, props.data, props.columns]
+  );
+
+  const sortedData = useMemo(
+    () => sortData(filteredData, sortState),
+    [filteredData, sortState]
+  );
+
+  const paginatedData = useMemo(() => {
+    const numberOfRows = Math.ceil(adjustedTableHeight / props.rowHeight);
+    return sortedData.slice(
+      (pageIndex - 1) * numberOfRows,
+      (pageIndex - 1) * numberOfRows + numberOfRows
     );
-    const sortedData = sortData(filteredData, sortState);
-
-    return sortedData;
-  }, [filtersState, sortState, props.data]);
+  }, [pageIndex, adjustedTableHeight, sortedData, props.rowHeight]);
 
   const displaySortingIcon = (sortingStatus: string | null) => {
     if (sortingStatus === "desc") return <IconSortDescending />;
@@ -86,37 +135,75 @@ export function Table<T extends { id: number }>(props: TableProps<T>) {
   };
 
   return (
-    <MantineTable>
-      <thead>
-        <tr>{filters}</tr>
-        <tr>
-          {props.columns.map((column, index) => (
-            <th
-              key={index}
-              onClick={() => {
-                handleSort(column.columnName);
-              }}
-            >
-              {column.header} {displaySortingIcon(sortState[column.columnName])}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {adjustedData.map((row) => (
-          <tr key={row.id}>
+    <Box h="100%" className={classes.container}>
+      <MantineTable className={classes.table}>
+        <thead>
+          <tr>{filters}</tr>
+          <tr>
             {props.columns.map((column, index) => (
-              <td key={index}>
-                {column.cellRenderer !== undefined ? (
-                  column.cellRenderer(row)
-                ) : (
-                  <>{row[column.columnName as keyof T] as string} </>
-                )}
-              </td>
+              <th
+                key={index}
+                onClick={() => {
+                  handleSort(column.columnName);
+                }}
+              >
+                {column.header}{" "}
+                {displaySortingIcon(sortState[column.columnName])}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </MantineTable>
+        </thead>
+        <tbody ref={tableRef}>
+          {paginatedData.map((row) => (
+            <tr key={row.id}>
+              {props.columns.map((column, index) => (
+                <td key={index}>
+                  {column.cellRenderer !== undefined ? (
+                    column.cellRenderer(row)
+                  ) : (
+                    <>{row[column.columnName as keyof T] as string} </>
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </MantineTable>
+      <Box>
+        <MantinePagination
+          total={getMaximumPages(
+            sortedData.length,
+            Math.ceil(adjustedTableHeight / props.rowHeight)
+          )}
+          position="left"
+          withEdges
+          nextIcon={IconArrowRight}
+          previousIcon={IconArrowLeft}
+          firstIcon={IconArrowBarToLeft}
+          lastIcon={IconArrowBarToRight}
+          dotsIcon={IconGripHorizontal}
+          onChange={setPageIndex}
+          value={pageIndex}
+        />
+      </Box>
+    </Box>
   );
 }
+
+const useStyles = createStyles((theme) => ({
+  container: {
+    display: "grid",
+    gridTemplateRows: "1fr min-content",
+    padding: `50px`,
+  },
+  table: {
+    overflowY: "auto", // Add vertical scroll if needed
+    height: "100%",
+    thead: {
+      marginBottom: theme.spacing.md,
+    },
+    tbody: {
+      height: "100%",
+    },
+  },
+}));
