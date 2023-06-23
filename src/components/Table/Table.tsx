@@ -5,7 +5,7 @@ import {
   Box,
 } from "@mantine/core";
 
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import {
   IconArrowBarToLeft,
@@ -55,15 +55,16 @@ export function Table<T>({
   const [sortState, setSorting] = useState<Sort>({});
   const [pageIndex, setPageIndex] = useState<number>(1);
 
-  const adjustedTableHeight = useMemo(() => {
+  const adjustedTableHeight = (windowHeight / rowHeight - 6) * rowHeight;
+  useEffect(() => {
     const handleResize = () => {
       setWindowHeight(window.innerHeight);
     };
-    // move this to useEffect
-    // add removeEventListener
     window.addEventListener("resize", handleResize);
 
-    return (windowHeight / rowHeight - 5) * rowHeight;
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [windowHeight, rowHeight]);
   const onDataFiltered = (inputValue: string, columnName: string) => {
     if (!inputValue && Boolean(filtersState[columnName])) {
