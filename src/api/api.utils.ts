@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export async function getData<T>(url: string): Promise<T> {
-  const { data } = await axios.get(url);
+export async function getData<TData>(url: string) {
+  const { data } = await axios.get<TData>(url);
   return data;
 }

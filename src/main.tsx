@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import Root from "./routes/root.tsx";
+import { Root } from "./routes/root.tsx";
 import "./index.css";
 import {
   createBrowserRouter,
@@ -10,11 +10,12 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import { ErrorPage } from "./error-page.tsx";
-import { Users } from "./routes/users.tsx";
+import { Users } from "./routes/Users.tsx";
 import { User } from "./routes/user.tsx";
-import { Posts } from "./routes/posts.tsx";
+import { Posts } from "./routes/Posts.tsx";
 import { Post } from "./routes/post.tsx";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { MantineProvider } from "@mantine/core";
 
 const queryClient = new QueryClient();
 
@@ -32,8 +33,10 @@ const router = createBrowserRouter(routerDefinitions);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <MantineProvider withGlobalStyles withNormalizeCSS>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </MantineProvider>
   </React.StrictMode>
 );

@@ -8,15 +8,44 @@ import {
   Alert,
   Center,
   Container,
+  Button,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { type User } from "../components/User/User.types.ts";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { IconAlertCircle, IconX } from "@tabler/icons-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-export const config = {
-  table: {
-    columns: [
+const ROW_HEIGHT = 80;
+
+export function Users() {
+  const users = useUsers();
+  const [usersData, setUsersData] = useState<User[]>(users.data ?? []);
+
+  const adjustedData = useMemo(
+    () =>
+      usersData === undefined || usersData.length === 0
+        ? users.data
+        : usersData,
+    [users.data, usersData]
+  );
+
+  useEffect(() => {
+    setUsersData(users.data ?? []);
+  }, [users.data]);
+
+  const handleDelete = useCallback(
+    (row: User) => {
+      setUsersData((prevPostsData) => {
+        return prevPostsData?.filter((user) => user.id !== row.id);
+      });
+    },
+    [users.data]
+  );
+
+  const columns = useMemo(() => {
+    return [
       {
+        isFilterable: true,
         columnName: "name",
         cellRenderer: (row: User) => {
           return (
@@ -29,16 +58,19 @@ export const config = {
         exactMatch: false,
       },
       {
+        isFilterable: true,
         columnName: "username",
         header: "Username",
         exactMatch: false,
       },
       {
+        isFilterable: true,
         columnName: "email",
         header: "Email",
         exactMatch: false,
       },
       {
+        isFilterable: true,
         columnName: "addressCombined",
         header: "Street",
         exactMatch: false,
@@ -49,12 +81,27 @@ export const config = {
           </Stack>
         ),
       },
-    ],
-  },
-};
-
-export function Users() {
-  const users = useUsers();
+      {
+        isFilterable: false,
+        columnName: "delete",
+        exactMatch: true,
+        header: "",
+        cellRenderer: (row) => {
+          return (
+            <Button
+              variant="default"
+              color="reds"
+              onClick={() => {
+                handleDelete(row);
+              }}
+            >
+              <IconX aria-label="Delete" color="red" />
+            </Button>
+          );
+        },
+      },
+    ];
+  }, []);
 
   if (users.isLoading) {
     return (
@@ -82,16 +129,23 @@ export function Users() {
     return <Loader />;
   }
 
-  if (users.data === undefined) return null;
+  if (adjustedData === undefined) return null;
 
   /*
    return <TableComponent rows={users.data} headers={config.table.headers} />;
   */
-  const data = users.data.map((user, index) => ({
+  const data = adjustedData.map((user, index) => ({
     ...user,
-    id: !Number.isNaN(user.id) ? user.id : index + 1,
+    id: !isNaN(user.id) ? user.id : index + 1,
     // I tried to avoid it...with the handleNestedObject util
     addressCombined: user.address.city + user.address.street,
   }));
-  return <Table data={data} columns={config.table.columns} />;
+  return (
+    <Table
+      rowHeight={ROW_HEIGHT}
+      data={data}
+      columns={columns}
+      keyField={"id"}
+    />
+  );
 }

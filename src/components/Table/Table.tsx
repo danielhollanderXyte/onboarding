@@ -1,122 +1,152 @@
-import { Table as MantineTable, TextInput } from "@mantine/core";
-import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
-import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
-import { omit } from "lodash/fp";
-import { filterData, getNextSortValue, sortData } from "../../utils/utils.ts";
+import {
+  Table as MantineTable,
+  Pagination as MantinePagination,
+  createStyles,
+  Box,
+} from "@mantine/core";
 
-export interface Column {
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+
+import {
+  IconArrowBarToLeft,
+  IconArrowBarToRight,
+  IconArrowLeft,
+  IconArrowRight,
+  IconGripHorizontal,
+} from "@tabler/icons-react";
+
+import { omit } from "lodash/fp";
+
+import { filterData, getMaximumPages, sortData } from "../../utils/utils.ts";
+
+import { TableHead } from "./TableHead/TableHead.tsx";
+
+import { TableBody } from "./TableBody/TableBody.tsx";
+
+export interface Column<TData> {
   columnName: string;
   exactMatch: boolean;
   header: string;
-  cellRenderer?: (row: any) => ReactNode;
+  cellRenderer?: (row: TData) => ReactNode;
+  isFilterable: boolean;
 }
 
-interface TableProps<T extends { id: number }> {
-  data: T[];
-  columns: Column[];
+interface TableProps<TData> {
+  data: TData[];
+  columns: Array<Column<TData>>;
+  rowHeight: number;
+  keyField: keyof TData;
 }
 
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
-export function Table<T extends { id: number }>(props: TableProps<T>) {
+// remove this
+export function Table<T>({
+  columns,
+  data,
+  rowHeight,
+  keyField,
+}: TableProps<T>) {
+  const { classes } = useStyles();
+
+  const [windowHeight, setWindowHeight] = useState<number>(window.innerHeight);
   const [filtersState, setFilters] = useState<Filter>({});
   const [sortState, setSorting] = useState<Sort>({});
+  const [pageIndex, setPageIndex] = useState<number>(1);
 
-  const handleSort = (columnName: string) => {
-    setSorting((prevSorting) => {
-      const updatedSortState = { ...prevSorting };
+  const adjustedTableHeight = (windowHeight / rowHeight - 6) * rowHeight;
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    window.addEventListener("resize", handleResize);
 
-      if (updatedSortState[columnName] === undefined) {
-        updatedSortState[columnName] = "desc";
-        return {
-          [columnName]: updatedSortState[columnName],
-        };
-      }
-
-      const order = getNextSortValue(sortState[columnName]);
-      return {
-        [columnName]: order,
-      };
-    });
-  };
-
-  const handleFilterChange = (
-    event: ChangeEvent<HTMLInputElement>,
-    currentColumn: string
-  ) => {
-    if (!event.target.value && Boolean(filtersState[currentColumn])) {
-      setFilters((prevState) => omit([currentColumn], prevState));
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [windowHeight, rowHeight]);
+  const onDataFiltered = (inputValue: string, columnName: string) => {
+    if (!inputValue && Boolean(filtersState[columnName])) {
+      setFilters((prevState) => omit([columnName], prevState));
       return;
     }
 
     setFilters((prevFilters) => ({
       ...prevFilters,
-      [currentColumn]: event.target.value,
+      [columnName]: inputValue,
     }));
   };
 
-  const filters = props.columns.map((column, index) => (
-    <td key={index}>
-      <TextInput
-        placeholder={`Filter by ${column.header}`}
-        onChange={(event) => {
-          handleFilterChange(event, column.columnName);
-        }}
-      />
-    </td>
-  ));
-
-  const adjustedData = useMemo(() => {
-    const filteredData = filterData(
-      [...props.data],
-      filtersState,
-      props.columns
-    );
-    const sortedData = sortData(filteredData, sortState);
-
-    return sortedData;
-  }, [filtersState, sortState, props.data]);
-
-  const displaySortingIcon = (sortingStatus: string | null) => {
-    if (sortingStatus === "desc") return <IconSortDescending />;
-    else if (sortingStatus === "asc") return <IconSortAscending />;
-
-    return null;
+  const onDataSorted = (sortDirection: Sort) => {
+    setSorting(sortDirection);
   };
 
+  const filteredData = useMemo(
+    () => filterData([...data], filtersState, columns),
+    [filtersState, data, columns]
+  );
+
+  const sortedData = useMemo(
+    () => sortData(filteredData, sortState),
+    [filteredData, sortState]
+  );
+
+  const paginatedData = useMemo(() => {
+    const numberOfRows = Math.ceil(adjustedTableHeight / rowHeight);
+    return sortedData.slice(
+      (pageIndex - 1) * numberOfRows,
+      (pageIndex - 1) * numberOfRows + numberOfRows
+    );
+  }, [pageIndex, adjustedTableHeight, sortedData, rowHeight]);
+
   return (
-    <MantineTable>
-      <thead>
-        <tr>{filters}</tr>
-        <tr>
-          {props.columns.map((column, index) => (
-            <th
-              key={index}
-              onClick={() => {
-                handleSort(column.columnName);
-              }}
-            >
-              {column.header} {displaySortingIcon(sortState[column.columnName])}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {adjustedData.map((row: any) => (
-          <tr key={row.id}>
-            {props.columns.map((column, index) => (
-              <td key={index}>
-                {column.cellRenderer != null ? (
-                  column.cellRenderer(row)
-                ) : (
-                  <>{row[column.columnName]} </>
-                )}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </MantineTable>
+    <Box h="100%" className={classes.container}>
+      <MantineTable className={classes.table}>
+        <TableHead
+          columns={columns}
+          onDataSorted={onDataSorted}
+          sortState={sortState}
+          onDataFiltered={onDataFiltered}
+          filtersState={filtersState}
+        />
+        <TableBody
+          columns={columns}
+          paginatedData={paginatedData}
+          keyField={keyField}
+        />
+      </MantineTable>
+      <Box>
+        <MantinePagination
+          total={getMaximumPages(
+            sortedData.length,
+            Math.ceil(adjustedTableHeight / rowHeight)
+          )}
+          position="left"
+          withEdges
+          nextIcon={IconArrowRight}
+          previousIcon={IconArrowLeft}
+          firstIcon={IconArrowBarToLeft}
+          lastIcon={IconArrowBarToRight}
+          dotsIcon={IconGripHorizontal}
+          onChange={setPageIndex}
+          value={pageIndex}
+        />
+      </Box>
+    </Box>
   );
 }
+
+const useStyles = createStyles((theme) => ({
+  container: {
+    display: "grid",
+    gridTemplateRows: "1fr min-content",
+    padding: `50px`,
+  },
+  table: {
+    overflowY: "auto", // Add vertical scroll if needed
+    thead: {
+      marginBottom: theme.spacing.md,
+    },
+  },
+}));
