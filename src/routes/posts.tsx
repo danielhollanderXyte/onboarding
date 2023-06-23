@@ -127,10 +127,17 @@ export function Posts(): ReactElement | ReactElement[] | null {
 
   if (adjustedData === undefined) return null;
 
-  const data = adjustedData.map((post, index) => ({
-    ...post,
-    id: !isNaN(post.id) ? post.id : index + 1,
-  }));
+  // const data = adjustedData.map((post, index) => ({
+  //   ...post,
+  //   id: !isNaN(post.id) ? post.id : index + 1,
+  // }));
 
-  return <Table<Post> rowHeight={ROW_HEIGHT} data={data} columns={columns} />;
+  return (
+    <Table<Post>
+      rowHeight={ROW_HEIGHT}
+      data={adjustedData}
+      columns={columns}
+      keyField={"id"}
+    />
+  );
 }

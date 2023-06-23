@@ -35,15 +35,18 @@ interface TableProps<TData> {
   data: TData[];
   columns: Array<Column<TData>>;
   rowHeight: number;
+  keyField: keyof TData;
 }
 
 export type Sort = Record<string, "asc" | "desc" | null>;
 export type Filter = Record<string, string>;
 
-export function Table<T extends { id: number }>({
+// remove this
+export function Table<T>({
   columns,
   data,
   rowHeight,
+  keyField,
 }: TableProps<T>) {
   const { classes } = useStyles();
 
@@ -56,12 +59,13 @@ export function Table<T extends { id: number }>({
     const handleResize = () => {
       setWindowHeight(window.innerHeight);
     };
-
+    // move this to useEffect
+    // add removeEventListener
     window.addEventListener("resize", handleResize);
 
     return (windowHeight / rowHeight - 5) * rowHeight;
   }, [windowHeight, rowHeight]);
-  const onDataFiltered = (inputValue, columnName) => {
+  const onDataFiltered = (inputValue: string, columnName: string) => {
     if (!inputValue && Boolean(filtersState[columnName])) {
       setFilters((prevState) => omit([columnName], prevState));
       return;
@@ -73,7 +77,7 @@ export function Table<T extends { id: number }>({
     }));
   };
 
-  const onDataSorted = (sortDirection: string) => {
+  const onDataSorted = (sortDirection: Sort) => {
     setSorting(sortDirection);
   };
 
@@ -105,7 +109,11 @@ export function Table<T extends { id: number }>({
           onDataFiltered={onDataFiltered}
           filtersState={filtersState}
         />
-        <TableBody columns={columns} paginatedData={paginatedData} />
+        <TableBody
+          columns={columns}
+          paginatedData={paginatedData}
+          keyField={keyField}
+        />
       </MantineTable>
       <Box>
         <MantinePagination

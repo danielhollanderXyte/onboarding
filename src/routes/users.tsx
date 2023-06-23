@@ -140,5 +140,12 @@ export function Users() {
     // I tried to avoid it...with the handleNestedObject util
     addressCombined: user.address.city + user.address.street,
   }));
-  return <Table rowHeight={ROW_HEIGHT} data={data} columns={columns} />;
+  return (
+    <Table
+      rowHeight={ROW_HEIGHT}
+      data={data}
+      columns={columns}
+      keyField={"id"}
+    />
+  );
 }

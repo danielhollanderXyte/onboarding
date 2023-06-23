@@ -1,25 +1,23 @@
-import React from "react";
-import { type Column, type Sort } from "../Table.tsx";
+import { type Column, type Sort, type Filter } from "../Table.tsx";
 import { getNextSortValue } from "../../../utils/utils.ts";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 
 import { Filters } from "../Filters/Filters.tsx";
-
 interface TableHeadProps<TData> {
   columns: Array<Column<TData>>;
-  onDataSorted: (columnName: string) => void;
+  onDataSorted: (columnName: Sort) => void;
   sortState: Sort;
   filtersState: Filter;
-  onDataFiltered: (filterValue: string) => void;
+  onDataFiltered: (filter: string, column: string) => void;
 }
 
-export function TableHead({
+export function TableHead<TData>({
   columns,
   onDataSorted,
   sortState,
   filtersState,
   onDataFiltered,
-}: TableHeadProps) {
+}: TableHeadProps<TData>) {
   const handleSort = (columnName: string) => {
     onDataSorted(
       sortState[columnName] === undefined

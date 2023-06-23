@@ -1,26 +1,20 @@
-import React, { type ChangeEvent, useState } from "react";
 import { type Column, type Filter } from "../Table.tsx";
 import { TextInput } from "@mantine/core";
-import { omit } from "lodash/fp";
 
-interface FiltersProps {
-  columns: Array<Column<[]>>;
+interface FiltersProps<TData> {
+  columns: Array<Column<TData>>;
   filtersState: Filter;
-  handleFilters: (filter: Filter) => void;
+  handleFilters: (filter: string, column: string) => void;
 }
 
-export function Filters({
-  filtersState,
+export function Filters<TData>({
   columns,
   handleFilters,
-}: FiltersProps) {
+}: FiltersProps<TData>) {
   // const [filtersState, setFilters] = useState<Filter>({});
 
-  const handleFilterChange = (
-    event: ChangeEvent<HTMLInputElement>,
-    columnName: string
-  ) => {
-    handleFilters(event.target.value, columnName);
+  const handleFilterChange = (inputValue: string, columnName: string) => {
+    handleFilters(inputValue, columnName);
   };
 
   return (
@@ -30,8 +24,8 @@ export function Filters({
           <td key={index}>
             <TextInput
               placeholder={`Filter by ${column.header}`}
-              onChange={(event) => {
-                handleFilterChange(event, column.columnName);
+              onChange={(e) => {
+                handleFilterChange(e.target.value, column.columnName);
               }}
             />
           </td>

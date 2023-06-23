@@ -41,7 +41,9 @@ export function filterData<TData>(
 export function sortData<T>(data: T[], sort: Sort): T[] {
   if (isEmpty(sort)) return data;
   else {
-    return orderBy(data, Object.keys(sort)[0], Object.values(sort)[0]);
+    const sortOrder = Object.values(sort)[0];
+    if (sortOrder === null) return data;
+    return orderBy(data, Object.keys(sort)[0], sortOrder);
   }
 }
 
